@@ -403,6 +403,7 @@ function spreedme {
     echo "spreedme.sh:" >> $SCRIPTS/logs
     bash $SCRIPTS/spreedme.sh
     rm $SCRIPTS/spreedme.sh
+}
 
 cat << LETSENC
 +-----------------------------------------------+

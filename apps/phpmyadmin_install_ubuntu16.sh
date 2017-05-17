@@ -35,11 +35,8 @@ echo "Checking server OS and version..."
 if [ "$OS" != 1 ]
 then
     echo "Ubuntu Server is required to run this script."
-<<<<<<< HEAD:static/phpmyadmin_install_ubuntu16.sh
-=======
     echo "Please install that distro and try again."
     sleep 3
->>>>>>> 5c7a89f58c97f1aa27134be10148df89a16d3fc8:apps/phpmyadmin_install_ubuntu16.sh
     exit 1
 fi
 

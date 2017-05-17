@@ -424,7 +424,6 @@ sudo -u www-data php "$NCPATH"/occ config:system:set preview_libreoffice_path --
 
 # Nextcloud apps
 whiptail --title "Which apps/programs do you want to install?" --checklist --separate-output "" 10 40 3 \
->>>>>>> 5c7a89f58c97f1aa27134be10148df89a16d3fc8
 "Calendar" "              " on \
 "Contacts" "              " on \
 "Webmin" "              " on 2>results

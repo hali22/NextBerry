@@ -59,7 +59,7 @@ if [ "$GITHUBVERSION" -gt "$CURRENTVERSION" ]; then
       rm /home/ncadmin/nextberry-upgrade.sh
   fi
       wget -q https://raw.githubusercontent.com/techandme/NextBerry/master/static/nextberry-upgrade.sh -P /home/ncadmin/ && chmod +x /home/ncadmin/nextberry-upgrade.sh
-      if [[ $? > 0 ]]; then
+      if [[ $? -gt 0 ]]; then
       echo -e "$COLOR_WHITE Download of update script failed. Please file a bug report on https://github.com/techandme/NextBerry/issues/new $COLOR_DEFAULT"
       echo -e "$COLOR_WHITE =============================================================================== $COLOR_DEFAULT"
       fi
