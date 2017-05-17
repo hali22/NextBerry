@@ -26,7 +26,7 @@ COLOR_WHITE='\033[1;37m'
 COLOR_DEFAULT='\033[0m'
 OS=$(printf "Operating system: %s (%s %s %s)\n" "$RELEASE" "$(uname -o)" "$(uname -r)" "$(uname -m)")
 clear
-echo -e "$COLOR_WHITE $($FIGLET -ckw 80 -f small NextBerry $CLEANVERSION) $COLOR_DEFAULT"
+echo -e "$COLOR_WHITE $($FIGLET -ckw 80 -f small NextBerry "$CLEANVERSION") $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE https://www.techandme.se                Uptime: $BIN_UPTIME $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE =============================================================================== $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE RPI: $TEMP - CPU freq: $CPUFREQ - $COREVOLT - MEM: $MEMGPU $MEMARM $COLOR_DEFAULT"

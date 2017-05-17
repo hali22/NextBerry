@@ -168,12 +168,7 @@ cat << CONFIG_CREATE >> "$CONFIG"
 ?>
 CONFIG_CREATE
 
-<<<<<<< HEAD:static/phpmyadmin_install_ubuntu16.sh
-service apache2 restart
-if [[ $? > 0 ]]
-=======
 if ! service apache2 restart
->>>>>>> 5c7a89f58c97f1aa27134be10148df89a16d3fc8:apps/phpmyadmin_install_ubuntu16.sh
 then
     echo "Apache2 could not restart..."
     echo "The script will exit."

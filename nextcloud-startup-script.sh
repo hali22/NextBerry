@@ -11,7 +11,7 @@ unset CHECK_CURRENT_REPO
 ## If you want debug mode, please activate it further down in the code at line ~60
 
 # DEBUG mode
-if [ $DEBUG -eq 1 ]
+if [ "$DEBUG" -eq 1 ]
 then
     set -e
     set -x
@@ -52,7 +52,7 @@ fi
 WT_MENU_HEIGHT=$((WT_HEIGHT-7))
 
 # Whiptail check
-if [ $(dpkg-query -W -f='${Status}' whiptail 2>/dev/null | grep -c "ok installed") -eq 1 ]; then
+if [ "$(dpkg-query -W -f='${Status}' whiptail 2>/dev/null | grep -c "ok installed")" -eq 1 ]; then
       echo "Whiptail is already installed..."
       clear
 else
@@ -603,7 +603,7 @@ cat $MYCNF | grep password > /root/.tmp
 sed -i 's|password=||g' /root/.tmp
 sed -i "s|'||g" /root/.tmp
 PW=$(cat /root/.tmp)
-sed -i 's|$PW|XXX-SQL-PASS-XXX|g' $SCRIPTS/logs
+sed -i "s|$PW|XXX-SQL-PASS-XXX|g" $SCRIPTS/logs
 rm /root/.tmp
 
 # Log file

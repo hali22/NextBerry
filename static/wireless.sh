@@ -1,6 +1,4 @@
 #!/bin/bash
-STATIC="https://raw.githubusercontent.com/techandme/NextBerry/master/static"
-SCRIPTS=/var/scripts
 IP=$(grep address /etc/network/interfaces)
 MASK=$(grep netmask /etc/network/interfaces)
 GW=$(grep gateway /etc/network/interfaces)

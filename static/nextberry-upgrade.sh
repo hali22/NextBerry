@@ -109,7 +109,7 @@ apt update
 sudo usermod -a -G netdev ncadmin
 DEBIAN_FRONTEND=noninteractive apt install -y wicd-curses
 
-if [ -f $SCRIPTS/wireless.sh ] then
+if [ -f $SCRIPTS/wireless.sh ] ;then
     rm $SCRIPTS/wireless.sh
     wget -q $STATIC/wireless.sh -P $SCRIPTS
 else

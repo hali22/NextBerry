@@ -4,10 +4,9 @@
 # See LICENSE file for copyright and license details
 
 INTERACTIVE=True
-ASK_TO_REBOOT=0
 
 is_live() {
-    grep -q "boot=live" $CMDLINE
+    grep -q "boot=live" "$CMDLINE"
     return $?
 }
 
@@ -35,7 +34,7 @@ calc_wt_size() {
   if [ "$WT_WIDTH" -gt 178 ]; then
     WT_WIDTH=120
   fi
-  WT_MENU_HEIGHT=$(($WT_HEIGHT-7))
+  WT_MENU_HEIGHT=$((WT_HEIGHT-7))
 }
 
 do_usb() {
@@ -95,7 +94,7 @@ partprobe
 clear
 echo "Moving from SD to HD/SSD, this can take a while! Sit back and relax..."
 echo
-rsync -aAXv --exclude={"/boot/*","/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} / /mnt
+rsync -aAXv --exclude="/boot/*","/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found" / /mnt
 
 # Previous line is more prone to errors: sed -e '10,31d' /root/.profile
 cat <<EOF > /mnt/root/.profile
@@ -301,7 +300,7 @@ EOF
 }
 
 # Everything else needs to be run as root
-if [ $(id -u) -ne 0 ]; then
+if [ "$(id -u)" -ne 0 ]; then
   printf "Script must be run as root. Try 'sudo bash /var/scripts/resize-sd.sh'\n"
   exit 1
 fi
