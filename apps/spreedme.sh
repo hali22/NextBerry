@@ -1,93 +1,71 @@
 #!/bin/bash
 
-# Tech and Me, ©2017 - www.techandme.se
-#
-# This install from Nextcloud official stable build with PHP 7, MySQL 5.7 and Apche 2.4.
-# Ubuntu 16.04 is required.
+# Tech and Me © - 2017, https://www.techandme.se/
+
+# shellcheck disable=2034,2059
+true
+# shellcheck source=lib.sh
+. <(curl -sL https://raw.githubusercontent.com/nextcloud/vm/master/lib.sh)
 
 # Check for errors + debug code and abort if something isn't right
 # 1 = ON
 # 0 = OFF
 DEBUG=0
-
-# Directories
-SCRIPTS=/var/scripts
-HTML=/var/www
-NCPATH=$HTML/nextcloud
-SNAPDIR=/var/snap/spreedme
-
-# DEBUG mode
-if [ $DEBUG -eq 1 ]
-then
-    set -e
-    set -x
-else
-    sleep 1
-fi
+debug_mode
 
 # Check if root
-if [ "$(whoami)" != "root" ]
+if ! is_root
 then
-    echo
-    echo -e "\e[31mSorry, you are not root.\n\e[0mYou must type: \e[36msudo \e[0mbash $SCRIPTS/nextcloud_install_production.sh"
-    echo
+    printf "\n${Red}Sorry, you are not root.\n${Color_Off}You must type: ${Cyan}sudo ${Color_Off}bash %s/nextcloud_install_production.sh\n" "$SCRIPTS"
     exit 1
 fi
 
 # Check if Nextcloud exists
-if [ -d $NCPATH ]
+if [ ! -d "$NCPATH" ]
 then
-    sleep 1
-else
     echo "Nextcloud does not seem to be installed. This script will exit..."
     exit
 fi
 
 # Check if apache is installed
-if [ $(dpkg-query -W -f='${Status}' apache2 2>/dev/null | grep -c "ok installed") -eq 1 ]
+if ! [ "$(dpkg-query -W -f='${Status}' apache2 2>/dev/null | grep -c "ok installed")" -eq 1 ]
 then
-    echo "Apache2 is installed."
-    sleep 1
-else
     echo "Apache is not installed, the script will exit."
     exit 1
 fi
 
 # Install Nextcloud Spreedme Snap
-if [ -d $SNAPDIR ]
+if [ -d "$SNAPDIR" ]
 then
     echo "SpreeMe Snap already seems to be installed and wil now be re-installed..."
     snap remove spreedme
+    rm -rf "$SNAPDIR"
     snap install spreedme
 else
     snap install spreedme
 fi
 
 # Install and activate the SpreedMe app
-SPREEDME_VER=$(wget -q https://raw.githubusercontent.com/strukturag/nextcloud-spreedme/master/appinfo/info.xml && grep -Po "(?<=<version>)[^<]*(?=</version>)" info.xml && rm info.xml)
-SPREEDME_FILE=v$SPREEDME_VER.tar.gz
-SPREEDME_REPO=https://github.com/strukturag/nextcloud-spreedme/archive
-
-if [ -d $NCPATH/apps/spreedme ]
+if [ -d "$NCPATH/apps/spreedme" ]
 then
     # Remove
-    sudo -u www-data php $NCPATH/occ app:disable spreedme
+    sudo -u www-data php "$NCPATH/occ" app:disable spreedme
     echo "SpreedMe app already seems to be installed and will now be re-installed..."
-    rm -R $NCPATH/apps/spreedme
+    rm -R "$NCPATH/apps/spreedme"
     # Reinstall
-    wget -q $SPREEDME_REPO/$SPREEDME_FILE -P $NCPATH/apps
-    tar -zxf $NCPATH/apps/$SPREEDME_FILE -C $NCPATH/apps
-    cd $NCPATH/apps
-    rm $SPREEDME_FILE
-    mv nextcloud-spreedme-$SPREEDME_VER spreedme
+    wget -q "$SPREEDME_REPO/$SPREEDME_FILE" -P "$NCPATH/apps"
+    tar -zxf "$NCPATH/apps/$SPREEDME_FILE" -C "$NCPATH/apps"
+    cd "$NCPATH/apps"
+    rm "$SPREEDME_FILE"
+    mv "nextcloud-spreedme-$SPREEDME_VER" spreedme
 else
-    wget -q $SPREEDME_REPO/$SPREEDME_FILE -P $NCPATH/apps
-    tar -zxf $NCPATH/apps/$SPREEDME_FILE -C $NCPATH/apps
-    cd $NCPATH/apps
-    rm $SPREEDME_FILE
-    mv nextcloud-spreedme-$SPREEDME_VER spreedme
+    wget -q "$SPREEDME_REPO/$SPREEDME_FILE" -P "$NCPATH/apps"
+    tar -zxf "$NCPATH/apps/$SPREEDME_FILE" -C "$NCPATH/apps"
+    cd "$NCPATH/apps"
+    rm "$SPREEDME_FILE"
+    mv "nextcloud-spreedme-$SPREEDME_VER" spreedme
 fi
-sudo -u www-data php $NCPATH/occ app:enable spreedme
+check_command sudo -u www-data php "$NCPATH/occ" app:enable spreedme
 
 # Generate secret keys
 SHAREDSECRET=$(openssl rand -hex 32)
@@ -114,13 +92,9 @@ a2enmod proxy \
         headers
 
 # Add config to vhost
-
-# Just in case we want to get the activated hosts, save it for later:
-#ACTIVE_VHOST=$(apache2ctl -S | grep 80 | cut -f5,5 -d"/" | cut -f1 -d":")
-#ACTIVE_VHOST_SSL=$(apache2ctl -S | grep 443 | cut -f5,5 -d"/" | cut -f1 -d":")
-
 VHOST=/etc/apache2/spreedme.conf
-
+if [ ! -f $VHOST ]
+then
 cat << VHOST > "$VHOST"
 <Location /webrtc>
     ProxyPass http://127.0.0.1:8080/webrtc
@@ -136,31 +110,26 @@ cat << VHOST > "$VHOST"
     RequestHeader set X-Forwarded-Proto 'https' env=HTTPS
     # RequestHeader set X-Forwarded-Proto 'https' # Use this if you are behind a (Nginx) reverse proxy with http backends
 VHOST
-if grep -Fxq "Include $VHOST" /etc/apache2/apache2.conf
+fi
+
+if ! grep -Fxq "Include $VHOST" /etc/apache2/apache2.conf
 then
-    echo "Include directive are enabled in apache2.conf"
-    sleep 1
-else
     sed -i "145i Include $VHOST" "/etc/apache2/apache2.conf"
 fi
 
 # Restart services
 service apache2 restart
-systemctl restart snap.spreedme.spreed-webrtc.service
-if [[ $? > 0 ]]
+if ! systemctl restart snap.spreedme.spreed-webrtc.service
 then
     echo "Something is wrong, the installation did not finish correctly"
     exit 1
 else
     echo
     echo "Success! SpreedMe is now installed and configured."
-    echo "You may have to change SPREED_WEBRTC_ORIGIN in:" 
+    echo "You may have to change SPREED_WEBRTC_ORIGIN in:"
     echo "(sudo nano) $NCPATH/apps/spreedme/config/config.php"
     echo
     exit 0
 fi
-echo -e "\e[32m"
-read -p "Press any key to continue..." -n1 -s
+any_key "Press any key to continue..."
 clear
-echo -e "\e[0m"
-
