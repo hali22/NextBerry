@@ -14,7 +14,7 @@ fi
 
 # Whiptail auto-size
 calc_wt_size() {
-  WT_HEIGHT=17
+export WT_HEIGHT=17
   WT_WIDTH=$(tput cols)
 
   if [ -z "$WT_WIDTH" ] || [ "$WT_WIDTH" -lt 60 ]; then
@@ -82,10 +82,10 @@ DEBIAN_FRONTEND=noninteractive apt install -y unattended-upgrades \
                                                 update-notifier-common
 
 # Set apt config
-echo "APT::Periodic::Update-Package-Lists "1";" > /etc/apt/apt.conf.d/20auto-upgrades
-echo "APT::Periodic::Unattended-Upgrade "1";" >> /etc/apt/apt.conf.d/20auto-upgrades
-echo "APT::Periodic::Enable "1";" > /etc/apt/apt.conf.d/10periodic
-echo "APT::Periodic::AutocleanInterval "1";" >> /etc/apt/apt.conf.d/10periodic
+echo "APT::Periodic::Update-Package-Lists \"1\";" > /etc/apt/apt.conf.d/20auto-upgrades
+echo "APT::Periodic::Unattended-Upgrade \"1\";" >> /etc/apt/apt.conf.d/20auto-upgrades
+echo "APT::Periodic::Enable \"1\";" > /etc/apt/apt.conf.d/10periodic
+echo "APT::Periodic::AutocleanInterval \"1\";" >> /etc/apt/apt.conf.d/10periodic
 
 if [ -f /etc/apt/apt.conf.d/50unattended-upgrades ]
 then
