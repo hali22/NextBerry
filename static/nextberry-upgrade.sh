@@ -1,7 +1,6 @@
 #!/bin/bash
 VERSIONFILE="/var/scripts/.version-nc"
 SCRIPTS="/var/scripts"
-GITHUB_REPO="https://raw.githubusercontent.com/techandme/NextBerry/master"
 STATIC="https://raw.githubusercontent.com/techandme/NextBerry/master/static"
 
 # Check if root
@@ -24,7 +23,6 @@ calc_wt_size() {
   if [ "$WT_WIDTH" -gt 178 ]; then
     WT_WIDTH=120
   fi
-  WT_MENU_HEIGHT=$((WT_HEIGHT-7))
 }
 
 ################### V1.1 ####################
