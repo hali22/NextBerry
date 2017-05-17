@@ -1,9 +1,9 @@
 <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
 <html>
     <head>
-        <title>Nextloud VM</title>
+        <title>Nextcloud VM</title>
         <META NAME="ROBOTS" CONTENT="NOINDEX, NOFOLLOW">
-        <style>
+        <style type="text/css">
             body {
                 background-color: #0082c9;
                 font-weight: 300;
@@ -114,8 +114,8 @@
                 </ul>
             </h3>
             <p>Note: Please accept the warning in the browser if you connect via HTTPS. It is recommended<br>
-            to <a href="https://www.techandme.se/publish-your-server-online" target="_blank">buy your own certificate and replace the self-signed certificate to your own.</a><br>
-            <p>Note: Before you can login you have to run the setup script, as descirbed in the video above.
+            to <a href="https://www.techandme.se/publish-your-server-online" target="_blank">buy your own certificate and replace the self-signed certificate to your own.</a></p>
+            <p>Note: Before you can login you have to run the setup script, as descirbed in the video above.</p>
         </div>
 
         <h2>Access phpMyadmin</h2>
@@ -124,8 +124,8 @@
             <p>Use one of the following addresses, HTTPS is preffered:
             <h3>
                 <ul>
-                    <li><a href="http://<?=$_SERVER['SERVER_NAME'];?>/phpmyadmin">http://<?=$_SERVER['SERVER_NAME'];?></a> (HTTP)
-                    <li><a href="https://<?=$_SERVER['SERVER_NAME'];?>/phpmyadmin">https://<?=$_SERVER['SERVER_NAME'];?></a> (HTTPS)
+                    <li><a href="http://<?=$_SERVER['SERVER_NAME'];?>/phpmyadmin">http://<?=$_SERVER['SERVER_NAME'];?></a> (HTTP)</li>
+                    <li><a href="https://<?=$_SERVER['SERVER_NAME'];?>/phpmyadmin">https://<?=$_SERVER['SERVER_NAME'];?></a> (HTTPS)</li>
                 </ul>
             </h3>
             <p>Note: Please accept the warning in the browser if you connect via HTTPS.</p>

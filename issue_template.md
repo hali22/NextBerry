@@ -1,7 +1,7 @@
 <!--
 Thank you for reporting your issue to us!
 
-Please report only issues corresponding to NextBerry for Nextcloud 11 or later. If you found a bug that is related to core, 
+Please report only issues corresponding to NextBerry for Nextcloud 11 or later. If you found a bug that is related to core,
 you can file your report here: https://github.com/nextcloud/server
 -->
 ## Steps to reproduce
@@ -21,9 +21,16 @@ Tell us what happens instead
 
 **Raspberry 2 or 3?**
 
+**NextBerry version**
+
 **Updated from an older installed version or fresh install:**
 
-## Logs
+## Network
+**Do you use DHCP?**
+
+**Is port 80 and/or 443 open?**
+
+## Logs / Screenshots
 <!--
 Please use http://hastebin.com/ for long error messages or logs. Thanks!
 -->
@@ -37,3 +44,8 @@ Insert your nextcloud.log file here
 ```
 Insert the CLI output here
 ```
+
+#### Screenshoots
+<!--
+Please use http://imgur.com/ for screenshots. Thanks!
+-->

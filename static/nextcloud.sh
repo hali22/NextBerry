@@ -1,4 +1,5 @@
 #!/bin/bash
+# Tech and Me © - 2017, https://www.techandme.se/
 REPO="https://raw.githubusercontent.com/techandme/NextBerry/master/"
 CURRENTVERSION=$(sed '1q;d' /var/scripts/.version-nc)
 CLEANVERSION=$(sed '2q;d' /var/scripts/.version-nc)

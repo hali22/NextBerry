@@ -1,69 +1,30 @@
 #!/bin/bash
 
-# Tech and Me, ©2017 - www.techandme.se
-#
-# This install from Nextcloud official stable build with PHP 7, MySQL 5.7 and Apche 2.4.
-# Ubuntu 16.04 is required.
+# Tech and Me © - 2017, https://www.techandme.se/
+
+# Erase some dev tracks
+cat /dev/null > /var/log/syslog
+
+# Prefer IPv4
+sed -i "s|#precedence ::ffff:0:0/96  100|precedence ::ffff:0:0/96  100|g" /etc/gai.conf
+
+# shellcheck disable=2034,2059
+true
+# shellcheck source=lib.sh
+FIRST_IFACE=1 && CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/nextcloud/vm/master/lib.sh)
+unset FIRST_IFACE
+unset CHECK_CURRENT_REPO
 
 # Check for errors + debug code and abort if something isn't right
 # 1 = ON
 # 0 = OFF
 DEBUG=0
-
-# Repositories
-GITHUB_REPO="https://raw.githubusercontent.com/techandme/NextBerry/master"
-STATIC="https://raw.githubusercontent.com/techandme/NextBerry/master/static"
-NCREPO="https://download.nextcloud.com/server/releases"
-TECHANDTOOL="https://raw.githubusercontent.com/ezraholm50/techandtool/master/techandtool.sh"
-OpenPGP_fingerprint='28806A878AE423A28372792ED75899B9A724937A'
-# Nextcloud version
-NCVERSION=$(curl -s --max-time 900 $NCREPO/ | tac | grep unknown.gif | sed 's/.*"nextcloud-\([^"]*\).zip.sha512".*/\1/;q')
-STABLEVERSION="nextcloud-$NCVERSION"
-NEXTBERRYVERSION="010" # Needs to be this format for if [ x -gt x ] then...
-NEXTBERRYVERSIONCLEAN="V1.0"
-# Ubuntu version
-OS=$(grep -ic "Ubuntu" /etc/issue.net)
-# Passwords
-SHUF=$(shuf -i 13-15 -n 1)
-MYSQL_PASS=$(cat /dev/urandom | tr -dc "a-zA-Z0-9@#*=" | fold -w $SHUF | head -n 1)
-PW_FILE=/var/mysql_password.txt
-# Directories
-SCRIPTS=/var/scripts
-HTML=/var/www
-NCPATH=$HTML/nextcloud
-GPGDIR=/tmp/gpg
-NCDATA=/var/ncdata
-# Apache vhosts
-SSL_CONF="/etc/apache2/sites-available/nextcloud_ssl_domain_self_signed.conf"
-HTTP_CONF="/etc/apache2/sites-available/nextcloud_http_domain_self_signed.conf"
-# Network
-IFACE=$(lshw -c network | grep "logical name" | awk '{print $3; exit}')
-ADDRESS=$(hostname -I | cut -d ' ' -f 1)
-# Devices
-DEVICE="/dev/mmcblk0"
-DEV="/dev/sda"
-DEVHD="/dev/sda2"
-DEVSP="/dev/sda1"
-# Linux user, and Nextcloud user
-UNIXUSER=$SUDO_USER
-NCPASS=nextcloud
-NCUSER=ncadmin
-
-# DEBUG mode
-if [ $DEBUG -eq 1 ]
-then
-    set -e
-    set -x
-else
-    sleep 1
-fi
+debug_mode
 
 # Check if root
-if [ "$(whoami)" != "root" ]
+if ! is_root
 then
-    echo
-    echo -e "\e[31mSorry, you are not root.\n\e[0mYou must type: \e[36msudo \e[0mbash $SCRIPTS/nextcloud_install_production.sh"
-    echo
+    printf "\n${Red}Sorry, you are not root.\n${Color_Off}You must type: ${Cyan}sudo ${Color_Off}bash %s/nextcloud_install_production.sh\n" "$SCRIPTS"
     exit 1
 fi
 
@@ -75,36 +36,17 @@ echo "If the field after ':' is blank you are probably running as a pure root us
 echo "It's possible to install with root, but there will be minor errors."
 echo
 echo "Please create a user with sudo permissions if you want an optimal installation."
-echo -e "\e[32m"
-read -p "Press any key to start the script. Press CTRL+C to abort." -n1 -s
-echo -e "\e[0m"
-
-# Prefer IPv4
-sed -i "s|#precedence ::ffff:0:0/96  100|precedence ::ffff:0:0/96  100|g" /etc/gai.conf
+run_static_script adduser
 
 # Check Ubuntu version
 echo "Checking server OS and version..."
-if [ $OS -eq 1 ]
+if [ "$OS" != 1 ]
 then
-    sleep 1
-else
     echo "Ubuntu Server is required to run this script."
     echo "Please install that distro and try again."
     exit 1
 fi
 
-DISTRO=$(lsb_release -sd | cut -d ' ' -f 2)
-version(){
-    local h t v
-
-    [[ $2 = "$1" || $2 = "$3" ]] && return 0
-
-    v=$(printf '%s\n' "$@" | sort -V)
-    h=$(head -n1 <<<"$v")
-    t=$(tail -n1 <<<"$v")
-
-    [[ $2 != "$h" && $2 != "$t" ]]
-}
 
 if ! version 16.04 "$DISTRO" 16.04.4; then
     echo "Ubuntu version $DISTRO must be between 16.04 - 16.04.4"
@@ -112,46 +54,60 @@ if ! version 16.04 "$DISTRO" 16.04.4; then
 fi
 
 # Check if key is available
-if curl -s "$NCREPO" > /dev/null
+if ! wget -q -T 10 -t 2 "$NCREPO" > /dev/null
 then
-    echo "Nextcloud repo OK"
-else
     echo "Nextcloud repo is not available, exiting..."
     exit 1
 fi
 
 # Check if it's a clean server
 echo "Checking if it's a clean server..."
-if [ $(dpkg-query -W -f='${Status}' mysql-common 2>/dev/null | grep -c "ok installed") -eq 1 ]
+if [ "$(dpkg-query -W -f='${Status}' mysql-common 2>/dev/null | grep -c "ok installed")" == "1" ]
 then
     echo "MySQL is installed, it must be a clean server."
     exit 1
 fi
 
-if [ $(dpkg-query -W -f='${Status}' apache2 2>/dev/null | grep -c "ok installed") -eq 1 ]
+if [ "$(dpkg-query -W -f='${Status}' apache2 2>/dev/null | grep -c "ok installed")" == "1" ]
 then
     echo "Apache2 is installed, it must be a clean server."
     exit 1
 fi
 
-if [ $(dpkg-query -W -f='${Status}' php 2>/dev/null | grep -c "ok installed") -eq 1 ]
+if [ "$(dpkg-query -W -f='${Status}' php 2>/dev/null | grep -c "ok installed")" == "1" ]
 then
     echo "PHP is installed, it must be a clean server."
     exit 1
 fi
 
-if [ $(dpkg-query -W -f='${Status}' nextcloud 2>/dev/null | grep -c "ok installed") -eq 1 ]
-then
-    echo "Nextcloud is installed, it must be a clean server."
-    exit 1
-fi
+# Update and upgrade
+apt autoclean
+apt	autoremove -y
+apt update
+apt full-upgrade -y
+apt install -fy
+dpkg --configure --pending
+
+# Install various packages
+apt install -y ntpdate \
+		            module-init-tools \
+		            miredo \
+                rsync \
+                zram-config \
+                ca-certificates \
+                unzip \
+                landscape-common \
+                pastebinit \
+                figlet \
+		            libminiupnpc10
+
+# Fix time issues
+ntpdate -u ntp.ubuntu.com
 
 # Create $SCRIPTS dir
-if [ -d $SCRIPTS ]
+if [ ! -d "$SCRIPTS" ]
 then
-    sleep 1
-else
-    mkdir -p $SCRIPTS
+    mkdir -p "$SCRIPTS"
 fi
 
 # Set swapfile
@@ -166,7 +122,7 @@ sync
 partprobe
 
 # Only use swap to prevent out of memory. Speed and less tear on SD
-echo "vm.swappiness = 10" >> /etc/sysctl.conf
+echo "vm.swappiness = 0" >> /etc/sysctl.conf
 sysctl -p
 
 # Set /etc/hosts
@@ -190,10 +146,7 @@ if ! [ -x "$(command -v resolvconf)" ]
 then
     apt install resolvconf -y -q
     dpkg-reconfigure resolvconf
-else
-    echo 'resolvconf is installed.' >&2
 fi
-
 echo "nameserver 8.8.8.8" > /etc/resolvconf/resolv.conf.d/base
 echo "nameserver 8.8.4.4" >> /etc/resolvconf/resolv.conf.d/base
 
@@ -201,62 +154,36 @@ echo "nameserver 8.8.4.4" >> /etc/resolvconf/resolv.conf.d/base
 if ! [ -x "$(command -v nslookup)" ]
 then
     apt install dnsutils -y -q
-else
-    echo 'dnsutils is installed.' >&2
 fi
 if ! [ -x "$(command -v ifup)" ]
 then
     apt install ifupdown -y -q
-else
-    echo 'ifupdown is installed.' >&2
 fi
-sudo ifdown $IFACE && sudo ifup $IFACE
-nslookup google.com
-if [[ $? > 0 ]]
+sudo ifdown "$IFACE" && sudo ifup "$IFACE"
+if ! nslookup google.com
 then
     echo "Network NOT OK. You must have a working Network connection to run this script."
     exit 1
-else
-    echo "Network OK."
 fi
-
-# Erase some dev tracks
-cat /dev/null > /var/log/syslog
 
 # Set locales
 apt install language-pack-en-base -y
+sudo locale-gen "sv_SE.UTF-8" && sudo dpkg-reconfigure --frontend=noninteractive locales
 
 # Set keyboard layout
-echo "Current keyboard layout is: $(localectl status | grep "Layout" | awk '{print $3}')"
-echo "You must change keyboard layout to your language"
-echo -e "\e[32m"
-read -p "Press any key to change keyboard layout... " -n1 -s
-echo -e "\e[0m"
-dpkg-reconfigure keyboard-configuration
-clear
+echo "Current keyboard layout is $(localectl status | grep "Layout" | awk '{print $3}')"
+if [[ "no" == $(ask_yes_or_no "Do you want to change keyboard layout?") ]]
+then
+    echo "Not changing keyboard layout..."
+    sleep 1
+    clear
+else
+    dpkg-reconfigure keyboard-configuration
+    clear
+fi
 
-# Update and upgrade
-apt autoclean
-apt	autoremove -y
-apt update
-apt full-upgrade -y
-apt install -fy
-dpkg --configure --pending
-
-# Install various packages
-apt install -y ntpdate \
-		            module-init-tools \
-		            miredo \
-                rsync \
-                zram-config \
-                ca-certificates \
-                unzip \
-                landscape-common \
-                pastebinit \
-		            libminiupnpc10
-
-# Fix time issues
-ntpdate -u ntp.ubuntu.com
+# Update system
+apt update -q4 & spinner_loading
 
 # Write MySQL pass to file and keep it safe
 echo "$MYSQL_PASS" > $PW_FILE
@@ -267,7 +194,7 @@ chown root:root $PW_FILE
 apt install software-properties-common -y
 echo "mysql-server-5.7 mysql-server/root_password password $MYSQL_PASS" | debconf-set-selections
 echo "mysql-server-5.7 mysql-server/root_password_again password $MYSQL_PASS" | debconf-set-selections
-apt install mysql-server-5.7 -y
+check_command apt install mysql-server-5.7 -y
 
 # mysql_secure_installation
 apt -y install expect
@@ -294,7 +221,7 @@ echo "$SECURE_MYSQL"
 apt -y purge expect
 
 # Install Apache
-apt install apache2 -y
+check_command apt install apache2 -y
 a2enmod rewrite \
         headers \
         env \
@@ -304,8 +231,8 @@ a2enmod rewrite \
         setenvif
 
 # Install PHP 7.0
-apt update
-apt install -y \
+apt update -q4 & spinner_loading
+check_command apt install -y \
     libapache2-mod-php7.0 \
     php7.0-common \
     php7.0-mysql \
@@ -325,42 +252,29 @@ apt install -y \
     php-smbclient
 
 # Enable SMB client
-# echo '# This enables php-smbclient' >> /etc/php/7.0/apache2/php.ini
-# echo 'extension="smbclient.so"' >> /etc/php/7.0/apache2/php.ini
+ echo '# This enables php-smbclient' >> /etc/php/7.0/apache2/php.ini
+ echo 'extension="smbclient.so"' >> /etc/php/7.0/apache2/php.ini
 
 # Download and validate Nextcloud package
-wget -q $NCREPO/$STABLEVERSION.zip -P $HTML
-mkdir -p $GPGDIR
-wget -q $NCREPO/$STABLEVERSION.zip.asc -P $GPGDIR
-chmod -R 600 $GPGDIR
-gpg --keyserver hkp://p80.pool.sks-keyservers.net:80 --recv-keys "$OpenPGP_fingerprint"
-gpg --verify $GPGDIR/$STABLEVERSION.zip.asc $HTML/$STABLEVERSION.zip
-if [[ $? > 0 ]]
+check_command download_verify_nextcloud_stable
+
+if [ ! -f "$HTML/$STABLEVERSION.tar.bz2" ]
 then
-    echo "Package NOT OK! Installation is aborted..."
+    echo "Aborting,something went wrong with the download of $STABLEVERSION.tar.bz2"
     exit 1
-else
-    echo "Package OK!"
 fi
 
-# Cleanup
-rm -r $GPGDIR
-
 # Extract package
-unzip -q $HTML/$STABLEVERSION.zip -d $HTML
-rm $HTML/$STABLEVERSION.zip
+tar -xjf "$HTML/$STABLEVERSION.tar.bz2" -C "$HTML" & spinner_loading
+rm "$HTML/$STABLEVERSION.tar.bz2"
 
 # Secure permissions
-wget -q $STATIC/setup_secure_permissions_nextcloud.sh -P $SCRIPTS
-echo "setup_secure_permissions_nextcloud.sh:" >> $SCRIPTS/logs
-bash $SCRIPTS/setup_secure_permissions_nextcloud.sh
+download_static_script setup_secure_permissions_nextcloud
+bash $SECURE & spinner_loading
 
 # Install Nextcloud
-cd $NCPATH
-clear
-echo "Installing Nextcloud, this can take a while please hold on..."
-echo
-sudo -u www-data php occ maintenance:install \
+cd "$NCPATH"
+check_command sudo -u www-data php occ maintenance:install \
     --data-dir "$NCDATA" \
     --database "mysql" \
     --database-name "nextcloud_db" \
@@ -370,9 +284,9 @@ sudo -u www-data php occ maintenance:install \
     --admin-pass "$NCPASS"
 echo
 echo "Nextcloud version:"
-sudo -u www-data php $NCPATH/occ status
-echo
+sudo -u www-data php "$NCPATH"/occ status
 sleep 3
+echo
 
 # Prepare cron.php to be run every 15 minutes
 crontab -u www-data -l | { cat; echo "*/15  *  *  *  * php -f $NCPATH/cron.php > /dev/null 2>&1"; } | crontab -u www-data -
@@ -392,23 +306,16 @@ sed -i "s|upload_max_filesize = 2M|upload_max_filesize = 1000M|g" /etc/php/7.0/a
 # Increase max filesize (expects that changes are made in /etc/php/7.0/apache2/php.ini)
 # Here is a guide: https://www.techandme.se/increase-max-file-size/
 VALUE="# php_value upload_max_filesize 511M"
-if grep -Fxq "$VALUE" $NCPATH/.htaccess
+if ! grep -Fxq "$VALUE" "$NCPATH"/.htaccess
 then
-        echo "Value correct"
-else
-        sed -i 's/  php_value upload_max_filesize 511M/# php_value upload_max_filesize 511M/g' $NCPATH/.htaccess
-        sed -i 's/  php_value post_max_size 511M/# php_value post_max_size 511M/g' $NCPATH/.htaccess
-        sed -i 's/  php_value memory_limit 512M/# php_value memory_limit 512M/g' $NCPATH/.htaccess
+        sed -i 's/  php_value upload_max_filesize 511M/# php_value upload_max_filesize 511M/g' "$NCPATH"/.htaccess
+        sed -i 's/  php_value post_max_size 511M/# php_value post_max_size 511M/g' "$NCPATH"/.htaccess
+        sed -i 's/  php_value memory_limit 512M/# php_value memory_limit 512M/g' "$NCPATH"/.htaccess
 fi
 
-# Install Figlet
-apt install figlet -y
-
 # Generate $HTTP_CONF
-if [ -f $HTTP_CONF ]
-    then
-    echo "Virtual Host exists"
-else
+if [ ! -f $HTTP_CONF ]
+then
     touch "$HTTP_CONF"
     cat << HTTP_CREATE > "$HTTP_CONF"
 <VirtualHost *:80>
@@ -428,8 +335,6 @@ else
     Satisfy Any
     </Directory>
 
-    Alias /nextcloud "$NCPATH/"
-
     <IfModule mod_dav.c>
     Dav off
     </IfModule>
@@ -445,14 +350,11 @@ else
 </VirtualHost>
 HTTP_CREATE
     echo "$HTTP_CONF was successfully created"
-    sleep 3
 fi
 
 # Generate $SSL_CONF
-if [ -f $SSL_CONF ]
-    then
-    echo "Virtual Host exists"
-else
+if [ ! -f $SSL_CONF ]
+then
     touch "$SSL_CONF"
     cat << SSL_CREATE > "$SSL_CONF"
 <VirtualHost *:443>
@@ -474,8 +376,6 @@ else
     Satisfy Any
     </Directory>
 
-    Alias /nextcloud "$NCPATH/"
-
     <IfModule mod_dav.c>
     Dav off
     </IfModule>
@@ -494,7 +394,6 @@ else
 </VirtualHost>
 SSL_CREATE
     echo "$SSL_CONF was successfully created"
-    sleep 3
 fi
 
 # Enable new config
@@ -505,184 +404,71 @@ service apache2 restart
 
 ## Set config values
 # Experimental apps
-sudo -u www-data php $NCPATH/occ config:system:set appstore.experimental.enabled --value="true"
+sudo -u www-data php "$NCPATH"/occ config:system:set appstore.experimental.enabled --value="true"
 # Default mail server as an example (make this user configurable?)
-sudo -u www-data php $NCPATH/occ config:system:set mail_smtpmode --value="smtp"
-sudo -u www-data php $NCPATH/occ config:system:set mail_smtpauth --value="1"
-sudo -u www-data php $NCPATH/occ config:system:set mail_smtpport --value="465"
-sudo -u www-data php $NCPATH/occ config:system:set mail_smtphost --value="smtp.gmail.com"
-sudo -u www-data php $NCPATH/occ config:system:set mail_smtpauthtype --value="LOGIN"
-sudo -u www-data php $NCPATH/occ config:system:set mail_from_address --value="www.techandme.se"
-sudo -u www-data php $NCPATH/occ config:system:set mail_domain --value="gmail.com"
-sudo -u www-data php $NCPATH/occ config:system:set mail_smtpsecure --value="ssl"
-sudo -u www-data php $NCPATH/occ config:system:set mail_smtpname --value="www.techandme.se@gmail.com"
-sudo -u www-data php $NCPATH/occ config:system:set mail_smtppassword --value="vinr vhpa jvbh hovy"
+sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtpmode --value="smtp"
+sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtpauth --value="1"
+sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtpport --value="465"
+sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtphost --value="smtp.gmail.com"
+sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtpauthtype --value="LOGIN"
+sudo -u www-data php "$NCPATH"/occ config:system:set mail_from_address --value="www.techandme.se"
+sudo -u www-data php "$NCPATH"/occ config:system:set mail_domain --value="gmail.com"
+sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtpsecure --value="ssl"
+sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtpname --value="www.techandme.se@gmail.com"
+sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtppassword --value="vinr vhpa jvbh hovy"
 
 # Install Libreoffice Writer to be able to read MS documents.
 sudo apt install --no-install-recommends libreoffice-writer -y
+sudo -u www-data php "$NCPATH"/occ config:system:set preview_libreoffice_path --value="/usr/bin/libreoffice"
+
 
 # Nextcloud apps
-CONVER=$(curl -s https://api.github.com/repos/nextcloud/contacts/releases/latest | grep "tag_name" | cut -d\" -f4 | sed -e "s|v||g")
-CONVER_FILE=contacts.tar.gz
-CONVER_REPO=https://github.com/nextcloud/contacts/releases/download
-CALVER=$(curl -s https://api.github.com/repos/nextcloud/calendar/releases/latest | grep "tag_name" | cut -d\" -f4 | sed -e "s|v||g")
-CALVER_FILE=calendar.tar.gz
-CALVER_REPO=https://github.com/nextcloud/calendar/releases/download
-
-sudo -u www-data php $NCPATH/occ config:system:set preview_libreoffice_path --value="/usr/bin/libreoffice"
-
-function calendar {
-# Download and install Calendar
-if [ -d $NCPATH/apps/calendar ]
-then
-    sleep 1
-else
-    wget -q $CALVER_REPO/v$CALVER/$CALVER_FILE -P $NCPATH/apps
-    tar -zxf $NCPATH/apps/$CALVER_FILE -C $NCPATH/apps
-    cd $NCPATH/apps
-    rm $CALVER_FILE
-fi
-
-# Enable Calendar
-if [ -d $NCPATH/apps/calendar ]
-then
-    sudo -u www-data php $NCPATH/occ app:enable calendar
-fi
-}
-
-function contacts {
-# Download and install Contacts
-if [ -d $NCPATH/apps/contacts ]
-then
-    sleep 1
-else
-    wget -q $CONVER_REPO/v$CONVER/$CONVER_FILE -P $NCPATH/apps
-    tar -zxf $NCPATH/apps/$CONVER_FILE -C $NCPATH/apps
-    cd $NCPATH/apps
-    rm $CONVER_FILE
-fi
-
-# Enable Contacts
-if [ -d $NCPATH/apps/contacts ]
-then
-    sudo -u www-data php $NCPATH/occ app:enable contacts
-fi
-}
-
-function spreedme {
-    bash $SCRIPTS/spreedme.sh
-    rm $SCRIPTS/spreedme.sh
-}
-
-whiptail --title "Which apps do you want to install?" --checklist --separate-output "" 10 40 3 \
+whiptail --title "Which apps/programs do you want to install?" --checklist --separate-output "" 10 40 3 \
+>>>>>>> 5c7a89f58c97f1aa27134be10148df89a16d3fc8
 "Calendar" "              " on \
 "Contacts" "              " on \
-"Spreed.Me" "              " on 2>results
+"Webmin" "              " on 2>results
 
-while read choice
+while read -r -u 9 choice
 do
-        case $choice in
-                Calendar) calendar
-                ;;
-                Contacts) contacts
-                ;;
-                Spreed.Me) spreedme
-                ;;
-                *)
-                ;;
-        esac
-done < results
+    case "$choice" in
+        Calendar)
+            run_app_script calendar
+        ;;
+        Contacts)
+            run_app_script contacts
+        ;;
+        Webmin)
+            run_app_script webmin
+        ;;
+        *)
+        ;;
+    esac
+done 9< results
+rm -f results
 
-# Change roots .bash_profile
-if [ -f $SCRIPTS/change-root-profile.sh ]
+# Get needed scripts for first bootup
+if [ ! -f "$SCRIPTS"/nextcloud-startup-script.sh ]
 then
-    echo "change-root-profile.sh exists"
-else
-    wget -q $STATIC/change-root-profile.sh -P $SCRIPTS
+check_command wget -q "$GITHUB_REPO"/nextcloud-startup-script.sh -P "$SCRIPTS"
 fi
-
-# Change $UNIXUSER .bash_profile
-if [ -f $SCRIPTS/change-ncadmin-profile.sh ]
-then
-    echo "change-ncadmin-profile.sh  exists"
-else
-    wget -q $STATIC/change-ncadmin-profile.sh -P $SCRIPTS
-fi
-
-# Welcome message after login (change in $HOME/.profile
-if [ -f $SCRIPTS/instruction.sh ]
-then
-    echo "instruction.sh exists"
-else
-    wget -q $STATIC/instruction.sh -P $SCRIPTS
-fi
-
-# Get nextcloud-startup-script.sh
-if [ -f $SCRIPTS/nextcloud-startup-script.sh ]
-then
-    echo "nextcloud-startup-script.sh exists"
-else
-    wget -q $GITHUB_REPO/nextcloud-startup-script.sh -P $SCRIPTS
-fi
-
-# Clears command history on every login
-if [ -f $SCRIPTS/history.sh ]
-then
-    echo "history.sh exists"
-else
-    wget -q $STATIC/history.sh -P $SCRIPTS
-fi
-
-# Change root profile
-echo "change-root-profile.sh:" >> $SCRIPTS/logs
-bash $SCRIPTS/change-root-profile.sh
-if [[ $? > 0 ]]
-then
-    echo "change-root-profile.sh were not executed correctly."
-    sleep 10
-else
-    echo "change-root-profile.sh script executed OK."
-    rm $SCRIPTS/change-root-profile.sh
-    sleep 2
-fi
-
-# Change $UNIXUSER profile
-echo "change-ncadmin-profile.sh:" >> $SCRIPTS/logs
-bash $SCRIPTS/change-ncadmin-profile.sh
-if [[ $? > 0 ]]
-then
-    echo "change-ncadmin-profile.sh were not executed correctly."
-    sleep 10
-else
-    echo "change-ncadmin-profile.sh executed OK."
-    rm $SCRIPTS/change-ncadmin-profile.sh
-    sleep 2
-fi
-
-# Get script for Redis
-if [ -f $SCRIPTS/redis-server-ubuntu16.sh ]
-then
-    echo "redis-server-ubuntu16.sh exists"
-else
-    wget -q $STATIC/redis-server-ubuntu16.sh -P $SCRIPTS
-fi
+download_static_script instruction
+download_static_script history
 
 # Make $SCRIPTS excutable
-chmod +x -R $SCRIPTS
-chown root:root -R $SCRIPTS
+chmod +x -R "$SCRIPTS"
+chown root:root -R "$SCRIPTS"
 
-# Allow $UNIXUSER to run these scripts
-chown $UNIXUSER:$UNIXUSER $SCRIPTS/instruction.sh
-chown $UNIXUSER:$UNIXUSER $SCRIPTS/history.sh
+# Prepare first bootup
+check_command run_static_script change-ncadmin-profile
+check_command run_static_script change-root-profile
 
 # Install Redis
-echo "redis-server-ubuntu16.sh:" >> $SCRIPTS/logs
-bash $SCRIPTS/redis-server-ubuntu16.sh
-rm $SCRIPTS/redis-server-ubuntu16.sh
+run_static_script redis-server-ubuntu16
 
 # Upgrade
-apt update
-apt full-upgrade -y
+apt update -q4 & spinner_loading
+apt dist-upgrade -y
 
 # Remove LXD (always shows up as failed during boot)
 apt purge lxd -y
@@ -692,26 +478,15 @@ rm /etc/update-motd.d/00-header
 rm /etc/update-motd.d/10-help-text
 
 # Cleanup
-CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e `uname -r | cut -f1,2 -d"-"` | grep -e [0-9] | xargs sudo apt -y purge)
+CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e ''"$(uname -r | cut -f1,2 -d"-")"'' | grep -e '[0-9]' | xargs sudo apt -y purge)
 echo "$CLEARBOOT"
 apt autoremove -y
 apt autoclean
-if [ -f $HOME/*.sh ]
-then
-    rm $HOME/*.sh
-fi
-
-if [ -f /root/*.sh ]
-then
-    rm /root/*.sh
-fi
+find /root "/home/$UNIXUSER" -type f \( -name '*.sh*' -o -name '*.html*' -o -name '*.tar*' -o -name '*.zip*' \) -delete
 
 # Set secure permissions final (./data/.htaccess has wrong permissions otherwise)
-echo "setup_secure_permissions_nextcloud.sh:" >> $SCRIPTS/logs
-bash $SCRIPTS/setup_secure_permissions_nextcloud.sh
+bash $SECURE & spinner_loading
 
 # Reboot
 echo "Installation done, system will now reboot..."
 reboot
-
-exit 0
