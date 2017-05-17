@@ -115,7 +115,7 @@ if [ -f $SCRIPTS/wireless.sh ] ;then
 else
     wget -q $STATIC/wireless.sh -P $SCRIPTS
 fi
-if [ -f $SCRIPTS/wireless.sh ] then
+if [ -f $SCRIPTS/wireless.sh ] ;then
     sleep 0.1
 else
     echo "Script failed to download. Please run: 'sudo bash /var/scripts/nextberry-upgrade.sh' again."
