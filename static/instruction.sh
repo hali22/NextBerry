@@ -16,7 +16,7 @@ debug_mode
 clear
 cat << INST1
 +-----------------------------------------------------------------------+
-| Thanks for downloading this Nextcloud VM by the Nextcloud Community!  |
+| Thanks for downloading this NextBerry by TechAndMe!                   |
 |                                                                       |
 INST1
 echo -e "|"  "${Green}To run the startup script type the sudoer password. This will either${Color_Off}  |"
