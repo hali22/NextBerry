@@ -38,21 +38,6 @@ echo
 echo "Please create a user with sudo permissions if you want an optimal installation."
 run_static_script adduser
 
-# Check Ubuntu version
-echo "Checking server OS and version..."
-if [ "$OS" != 1 ]
-then
-    echo "Ubuntu Server is required to run this script."
-    echo "Please install that distro and try again."
-    exit 1
-fi
-
-
-if ! version 16.04 "$DISTRO" 16.04.4; then
-    echo "Ubuntu version $DISTRO must be between 16.04 - 16.04.4"
-    exit
-fi
-
 # Check if key is available
 if ! wget -q -T 10 -t 2 "$NCREPO" > /dev/null
 then
@@ -109,16 +94,27 @@ then
     mkdir -p "$SCRIPTS"
 fi
 
-# Set swapfile
-fallocate -l 1G /swapfile
-chmod 600 /swapfile
-mkswap /swapfile
-echo "/swapfile   none    swap    sw    0   0" >> /etc/fstab
-swapon /swapfile
-sudo chown root:root /swapfile
-sudo chmod 0600 /swapfile
-sync
-partprobe
+## Set swapfile
+#fallocate -l 1G /swapfile
+#chmod 600 /swapfile
+#mkswap /swapfile
+#echo "/swapfile   none    swap    sw    0   0" >> /etc/fstab
+#swapon /swapfile
+#sudo chown root:root /swapfile
+#sudo chmod 0600 /swapfile
+#sync
+#partprobe
+
+# Set swap if we're using a HD
+if [ ! -f "$NCUSER/.hd" ]
+then
+sed -i 's|#CONF_SWAPFILE=/var/swap|CONF_SWAPFILE=/var/swap|g' /etc/dphys-swapfile
+sed -i 's|#CONF_SWAPSIZE=100|CONF_SWAPSIZE=1000|g' /etc/dphys-swapfile
+sed -i 's|#CONF_MAXSWAP=2048|CONF_MAXSWAP=2048|g' /etc/dphys-swapfile
+/etc/init.d/dphys-swapfile stop
+/etc/init.d/dphys-swapfile start
+/etc/init.d/dphys-swapfile swapon
+fi
 
 # Only use swap to prevent out of memory. Speed and less tear on SD
 echo "vm.swappiness = 0" >> /etc/sysctl.conf

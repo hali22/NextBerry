@@ -1,7 +1,18 @@
-#!/bin/sh
-# Part of raspi-config https://github.com/RPi-Distro/raspi-config
-#
-# See LICENSE file for copyright and license details
+#!/bin/bash
+
+# Tech and Me © - 2017, https://www.techandme.se/
+# shellcheck disable=2034,2059
+true
+# shellcheck source=lib.sh
+FIRST_IFACE=1 && CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/nextcloud/vm/master/lib.sh)
+unset FIRST_IFACE
+unset CHECK_CURRENT_REPO
+
+# Check for errors + debug code and abort if something isn't right
+# 1 = ON
+# 0 = OFF
+DEBUG=0
+debug_mode
 
 INTERACTIVE=True
 
@@ -91,9 +102,6 @@ partprobe
   sed -i "s|.*ext4.*|PARTUUID=$GDEVHDUUID  /               ext4   defaults,noatime  0       1|g" /etc/fstab
 	mount $DEVHD /mnt
 
-apt update
-apt install rsync -y
-
 clear
 echo "Moving from SD to HD/SSD, this can take a while! Sit back and relax..."
 echo
@@ -110,6 +118,8 @@ cat <<EX > /tmp/rsync.excludes
 EX
 
 rsync -aAXv --exclude-from=/tmp/rsync.excludes /* /mnt/
+
+touch /home/ncadmin/.hd
 
 # Previous line is more prone to errors: sed -e '10,31d' /root/.profile
 cat <<EOF > /mnt/root/.profile
@@ -161,11 +171,9 @@ else
   mount /dev/mmcblk0p1 /boot
 fi
 
-echo "smsc95xx.turbo_mode=N dwc_otg.fiq_fix_enable=1 net.ifnames=0 biosdevname=0 dwc_otg.lpm_enable=0 console=tty1 root=PARTUUID=$GDEVHDUUID rootfstype=ext4 elevator=deadline rootwait quiet splash" > /boot/cmdline.txt
-
-rm /boot/config.txt
-wget -q https://raw.githubusercontent.com/techandme/NextBerry/master/static/config.txt -P /boot/
-
+  echo "smsc95xx.turbo_mode=N dwc_otg.fiq_fix_enable=1 net.ifnames=0 biosdevname=0 dwc_otg.lpm_enable=0 console=tty1 root=PARTUUID=$GDEVHDUUID rootfstype=ext4 elevator=deadline rootwait quiet splash" > /boot/cmdline.txt
+  rm /boot/config.txt
+  wget -q https://raw.githubusercontent.com/techandme/NextBerry/master/static/config.txt -P /boot/
 	whiptail --msgbox "Success, we will now reboot to finish switching /root...\n\n Please make sure you do not have a Wifi dongle plugged in before you press enter.\n\n This will make the next script fail, first finish using an ethernet cable.\n\n Afterwards you can setup a Wifi connection." 20 60 1
   umount /mnt
 	reboot
