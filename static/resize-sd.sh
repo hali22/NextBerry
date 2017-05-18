@@ -10,16 +10,16 @@ is_live() {
     return $?
 }
 
-get_init_sys() {
-  if command -v systemctl > /dev/null && systemctl | grep -q '\-\.mount'; then
-    SYSTEMD=1
-  elif [ -f /etc/init.d/cron ] && [ ! -h /etc/init.d/cron ]; then
-    SYSTEMD=0
-  else
-    echo "Unrecognised init system"
-    return 1
-  fi
-}
+#get_init_sys() {
+#  if command -v systemctl > /dev/null && systemctl | grep -q '\-\.mount'; then
+#    SYSTEMD=1
+#  elif [ -f /etc/init.d/cron ] && [ ! -h /etc/init.d/cron ]; then
+#    SYSTEMD=0
+#  else
+#    echo "Unrecognised init system"
+#    return 1
+#  fi
+#}
 
 calc_wt_size() {
   # NOTE: it's tempting to redirect stderr to /dev/null, so supress error
