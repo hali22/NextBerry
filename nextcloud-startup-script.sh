@@ -608,7 +608,7 @@ rm /root/.tmp
 
 # Log file
 echo "pastebinit -i $SCRIPTS/logs -a nextcloud_installation_$DATE -b https://paste.ubuntu.com > $SCRIPTS/.pastebinit" > /usr/sbin/install-log
-sed -i 's|http|https|g' $SCRIPTS/.pastebinit"
+sed -i 's|http|https|g' $SCRIPTS/.pastebinit
 echo "clear" >> /usr/sbin/install-log
 echo "exec $SCRIPTS/nextcloud.sh" >> /usr/sbin/install-log
 chmod 770 /usr/sbin/install-log
