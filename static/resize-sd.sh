@@ -91,6 +91,9 @@ partprobe
   sed -i "s|.*ext4.*|PARTUUID=$GDEVHDUUID  /               ext4   defaults,noatime  0       1|g" /etc/fstab
 	mount $DEVHD /mnt
 
+apt update
+apt install rsync -y
+
 clear
 echo "Moving from SD to HD/SSD, this can take a while! Sit back and relax..."
 echo

@@ -93,7 +93,6 @@ apt install -y ntpdate \
 		            module-init-tools \
 		            miredo \
                 rsync \
-                zram-config \
                 ca-certificates \
                 unzip \
                 landscape-common \
