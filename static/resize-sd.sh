@@ -88,25 +88,25 @@ partprobe
   mke2fs -F -F -t ext4 -b 4096 -L 'PI_ROOT' $DEVHD
 	sed -i 's|/dev/mmcblk0p2|#/dev/mmcblk0p2|g' /etc/fstab
   GDEVHDUUID=$(blkid -o value -s PARTUUID $DEVHD)
-	echo "PARTUUID=$GDEVHDUUID  /               ext4   defaults,noatime  0       1" >> /etc/fstab
+  sed -i "s|.*ext4.*|PARTUUID=$GDEVHDUUID  /               ext4   defaults,noatime  0       1|g" /etc/fstab
 	mount $DEVHD /mnt
 
 clear
 echo "Moving from SD to HD/SSD, this can take a while! Sit back and relax..."
 echo
-{
-/boot/
-/dev/
-/proc/
-/sys/
-/tmp/
-/run/
-/mnt/
-/media/
-/lost+found
-} > /tmp/rsync.excludes
+cat <<EX > /tmp/rsync.excludes
+/boot/*
+/dev/*
+/proc/*
+/sys/*
+/tmp/*
+/run/*
+/mnt/*
+/media/*
+/lost+found/*
+EX
 
-rsync -aAXv --exclude-from=/tmp/rsync.excludes
+rsync -aAXv --exclude-from=/tmp/rsync.excludes /* /mnt/
 
 # Previous line is more prone to errors: sed -e '10,31d' /root/.profile
 cat <<EOF > /mnt/root/.profile
