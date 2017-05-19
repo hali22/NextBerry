@@ -74,8 +74,7 @@ apt install -fy
 dpkg --configure --pending
 
 # Install various packages
-apt install -y ntpdate \
-		            module-init-tools \
+apt install -y  module-init-tools \
 		            miredo \
                 rsync \
                 ca-certificates \
@@ -84,9 +83,6 @@ apt install -y ntpdate \
                 pastebinit \
                 figlet \
 		            libminiupnpc10
-
-# Fix time issues
-ntpdate -u ntp.ubuntu.com
 
 # Create $SCRIPTS dir
 if [ ! -d "$SCRIPTS" ]
