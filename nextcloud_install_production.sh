@@ -32,8 +32,6 @@ clear
 echo
 echo "Current user with sudo permissions is: $UNIXUSER".
 echo "This script will set up everything with that user."
- n
-
 run_static_script adduser
 
 # Check if key is available
@@ -64,7 +62,6 @@ then
 fi
 
 # Update and upgrade
-apt autoclean
 apt	autoremove -y
 apt update
 apt full-upgrade -y
@@ -156,8 +153,8 @@ then
 fi
 
 # Set locales
-apt install language-pack-en-base -y
-sudo locale-gen "sv_SE.UTF-8" && sudo dpkg-reconfigure --frontend=noninteractive locales
+#apt install language-pack-en-base -y
+sudo locale-gen "en_US.UTF-8" && sudo dpkg-reconfigure --frontend=noninteractive locales
 
 # Set keyboard layout
 echo "Current keyboard layout is $(localectl status | grep "Layout" | awk '{print $3}')"
