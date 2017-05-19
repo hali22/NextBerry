@@ -8,12 +8,13 @@ cat /dev/null > /var/log/syslog
 # Prefer IPv4
 sed -i "s|#precedence ::ffff:0:0/96  100|precedence ::ffff:0:0/96  100|g" /etc/gai.conf
 
-# shellcheck disable=2034,2059
-true
-# shellcheck source=lib.sh
 clear
 printf "Please wait untill the script continues, this could take up to about a minute."
 echo
+
+# shellcheck disable=2034,2059
+true
+# shellcheck source=lib.sh
 FIRST_IFACE=1 && CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/nextcloud/vm/master/lib.sh)
 unset FIRST_IFACE
 unset CHECK_CURRENT_REPO
