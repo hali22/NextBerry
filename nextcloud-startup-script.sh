@@ -1,8 +1,4 @@
 #!/bin/bash
-clear
-printf "Please wait untill the script continues, this could take up to about a minute."
-echo
-
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh

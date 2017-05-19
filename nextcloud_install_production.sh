@@ -1,23 +1,12 @@
 #!/bin/bash
-
-# Tech and Me © - 2017, https://www.techandme.se/
-
-# Erase some dev tracks
-cat /dev/null > /var/log/syslog
-
-# Prefer IPv4
-sed -i "s|#precedence ::ffff:0:0/96  100|precedence ::ffff:0:0/96  100|g" /etc/gai.conf
-
-clear
-printf "Please wait untill the script continues, this could take up to about a minute."
-echo
-
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
 FIRST_IFACE=1 && CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/nextcloud/vm/master/lib.sh)
 unset FIRST_IFACE
 unset CHECK_CURRENT_REPO
+
+# Tech and Me © - 2017, https://www.techandme.se/
 
 # Check for errors + debug code and abort if something isn't right
 # 1 = ON
@@ -31,6 +20,12 @@ then
     printf "\n${Red}Sorry, you are not root.\n${Color_Off}You must type: ${Cyan}sudo ${Color_Off}bash %s/nextcloud_install_production.sh\n" "$SCRIPTS"
     exit 1
 fi
+
+# Erase some dev tracks
+cat /dev/null > /var/log/syslog
+
+# Prefer IPv4
+sed -i "s|#precedence ::ffff:0:0/96  100|precedence ::ffff:0:0/96  100|g" /etc/gai.conf
 
 # Show current user
 clear
