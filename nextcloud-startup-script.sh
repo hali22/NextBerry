@@ -460,7 +460,7 @@ if [[ "yes" == $(ask_yes_or_no "Do you want to add extra security, based on this
 then
     echo "security.sh:" >> "$SCRIPTS"/logs
     bash "$SCRIPTS"/security.sh
-    rm ""$SCRIPTS""/security.sh
+    rm "$SCRIPTS"/security.sh
 else
     echo
     echo "OK, but if you want to run it later, just type: sudo bash $SCRIPTS/security.sh"
