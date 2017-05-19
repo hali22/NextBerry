@@ -4,6 +4,9 @@
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
+clear
+printf "Please wait untill the script continues, this could take up to about a minute."
+echo
 FIRST_IFACE=1 && CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/nextcloud/vm/master/lib.sh)
 unset FIRST_IFACE
 unset CHECK_CURRENT_REPO

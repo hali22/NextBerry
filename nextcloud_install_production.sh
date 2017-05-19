@@ -11,6 +11,9 @@ sed -i "s|#precedence ::ffff:0:0/96  100|precedence ::ffff:0:0/96  100|g" /etc/g
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
+clear
+printf "Please wait untill the script continues, this could take up to about a minute."
+echo
 FIRST_IFACE=1 && CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/nextcloud/vm/master/lib.sh)
 unset FIRST_IFACE
 unset CHECK_CURRENT_REPO
@@ -29,13 +32,12 @@ then
 fi
 
 # Show current user
+clear
 echo
 echo "Current user with sudo permissions is: $UNIXUSER".
 echo "This script will set up everything with that user."
-echo "If the field after ':' is blank you are probably running as a pure root user."
-echo "It's possible to install with root, but there will be minor errors."
-echo
-echo "Please create a user with sudo permissions if you want an optimal installation."
+ n
+
 run_static_script adduser
 
 # Check if key is available
@@ -174,18 +176,18 @@ else
 fi
 
 # Update system
-apt update -q4 & spinner_loading
+apt update -q2 & spinner_loading
 
 # Write MySQL pass to file and keep it safe
 echo "$MYSQL_PASS" > $PW_FILE
 chmod 600 $PW_FILE
 chown root:root $PW_FILE
 
-# Install MYSQL 5.7
+# Install MYSQL
 apt install software-properties-common -y
-echo "mysql-server-5.7 mysql-server/root_password password $MYSQL_PASS" | debconf-set-selections
-echo "mysql-server-5.7 mysql-server/root_password_again password $MYSQL_PASS" | debconf-set-selections
-check_command apt install mysql-server-5.7 -y
+echo "mysql-server mysql-server/root_password password $MYSQL_PASS" | debconf-set-selections
+echo "mysql-server mysql-server/root_password_again password $MYSQL_PASS" | debconf-set-selections
+check_command apt install mysql-server -y
 
 # mysql_secure_installation
 apt -y install expect
@@ -222,7 +224,7 @@ a2enmod rewrite \
         setenvif
 
 # Install PHP 7.0
-apt update -q4 & spinner_loading
+apt update -q2 & spinner_loading
 check_command apt install -y \
     libapache2-mod-php7.0 \
     php7.0-common \
@@ -457,7 +459,7 @@ check_command run_static_script change-root-profile
 run_static_script redis-server-ubuntu16
 
 # Upgrade
-apt update -q4 & spinner_loading
+apt update -q2 & spinner_loading
 apt dist-upgrade -y
 
 # Remove LXD (always shows up as failed during boot)
