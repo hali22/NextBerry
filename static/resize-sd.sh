@@ -22,6 +22,7 @@ is_live() {
 }
 
 get_init_sys() {
+  if command -v systemctl > /dev/null && systemctl | grep -q '\-\.mount'; then
     SYSTEMD=1
   elif [ -f /etc/init.d/cron ] && [ ! -h /etc/init.d/cron ]; then
     SYSTEMD=0
@@ -207,7 +208,7 @@ do_expand_rootfs() {
   fi
 
   LAST_PART_NUM=$(parted /dev/mmcblk0 -ms unit s p | tail -n 1 | cut -f 1 -d:)
-  if [ "$LAST_PART_NUM" -ne "$PART_NUM" ]; then
+  if [ $LAST_PART_NUM -ne $PART_NUM ]; then
     whiptail --msgbox "$ROOT_PART is not the last partition. Don't know how to expand" 20 60 2
     return 0
   fi
@@ -225,10 +226,10 @@ n
 p
 $PART_NUM
 $PART_START
-
 p
 w
 EOF
+  ASK_TO_REBOOT=1
 
   # now set up an init.d script
 cat <<EOF > /etc/init.d/resize2fs_once &&
@@ -242,9 +243,7 @@ cat <<EOF > /etc/init.d/resize2fs_once &&
 # Short-Description: Resize the root filesystem to fill partition
 # Description:
 ### END INIT INFO
-
 . /lib/lsb/init-functions
-
 case "\$1" in
   start)
     log_daemon_msg "Starting resize2fs_once" &&
@@ -259,6 +258,7 @@ case "\$1" in
     ;;
 esac
 EOF
+
 
 # Previous line is more prone to errors: sed -e '10,31d' /root/.profile
 cat <<EOF > /root/.profile
