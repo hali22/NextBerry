@@ -1,10 +1,12 @@
 #!/bin/bash
 # shellcheck disable=2034,2059
 true
-# shellcheck source=lib.sh
+
 clear
 printf "Please wait untill the script continues, this could take up to about a minute."
 echo
+
+# shellcheck source=lib.sh
 FIRST_IFACE=1 && CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/techandme/nextberry/master/lib.sh)
 unset FIRST_IFACE
 unset CHECK_CURRENT_REPO
@@ -103,14 +105,14 @@ echo
 echo "Getting scripts from GitHub to be able to run the first setup..."
 
 # Get passman script
-if [ -f $SCRIPTS/passman.sh ]
+if [ -f "$SCRIPTS"/passman.sh ]
 then
-    rm $SCRIPTS/passman.sh
-    wget -q $STATIC/passman.sh -P $SCRIPTS
+    rm "$SCRIPTS"/passman.sh
+    wget -q "$STATIC"/passman.sh -P "$SCRIPTS"
 else
-    wget -q $STATIC/passman.sh -P $SCRIPTS
+    wget -q "$STATIC"/passman.sh -P "$SCRIPTS"
 fi
-if [ -f $SCRIPTS/passman.sh ]
+if [ -f "$SCRIPTS"/passman.sh ]
 then
     sleep 0.1
 else
@@ -120,14 +122,14 @@ else
 fi
 
 # Get nextant script
-if [ -f $SCRIPTS/nextant.sh ]
+if [ -f "$SCRIPTS"/nextant.sh ]
 then
-    rm $SCRIPTS/nextant.sh
-    wget -q $STATIC/nextant.sh -P $SCRIPTS
+    rm "$SCRIPTS"/nextant.sh
+    wget -q "$STATIC"/nextant.sh -P "$SCRIPTS"
 else
-    wget -q $STATIC/nextant.sh -P $SCRIPTS
+    wget -q "$STATIC"/nextant.sh -P "$SCRIPTS"
 fi
-if [ -f $SCRIPTS/nextant.sh ]
+if [ -f "$SCRIPTS"/nextant.sh ]
 then
     sleep 0.1
 else
@@ -183,9 +185,9 @@ download_static_script index
 if [ -f "$SCRIPTS"/activate-ssl.sh ]
 then
     rm "$SCRIPTS"/activate-ssl.sh
-    wget -q $LETS_ENC/activate-ssl.sh -P "$SCRIPTS"
+    wget -q "$LETS_ENC"/activate-ssl.sh -P "$SCRIPTS"
 else
-    wget -q $LETS_ENC/activate-ssl.sh -P "$SCRIPTS"
+    wget -q "$LETS_ENC"/activate-ssl.sh -P "$SCRIPTS"
 fi
 if [ ! -f "$SCRIPTS"/activate-ssl.sh ]
 then
@@ -195,14 +197,14 @@ then
 fi
 
 # Tests connection after static IP is set
-if [ -f $SCRIPTS/test_connection.sh ]
+if [ -f "$SCRIPTS"/test_connection.sh ]
 then
-    rm $SCRIPTS/test_connection.sh
-    wget -q $STATIC/test_connection.sh -P $SCRIPTS
+    rm "$SCRIPTS"/test_connection.sh
+    wget -q "$STATIC"/test_connection.sh -P "$SCRIPTS"
 else
-    wget -q $STATIC/test_connection.sh -P $SCRIPTS
+    wget -q "$STATIC"/test_connection.sh -P "$SCRIPTS"
 fi
-if [ -f $SCRIPTS/test_connection.sh ]
+if [ -f "$SCRIPTS"/test_connection.sh ]
 then
     sleep 0.1
 else
@@ -212,14 +214,14 @@ else
 fi
 
 # Get latest updates of NextBerry
-if [ -f $SCRIPTS/nextberry-upgrade.sh ]
+if [ -f "$SCRIPTS"/nextberry-upgrade.sh ]
 then
-    rm $SCRIPTS/nextberry-upgrade.sh
-    wget -q $STATIC/nextberry-upgrade.sh -P $SCRIPTS
+    rm "$SCRIPTS"/nextberry-upgrade.sh
+    wget -q "$STATIC"/nextberry-upgrade.sh -P "$SCRIPTS"
 else
-    wget -q $STATIC/nextberry-upgrade.sh -P $SCRIPTS
+    wget -q "$STATIC"/nextberry-upgrade.sh -P "$SCRIPTS"
 fi
-if [ -f $SCRIPTS/nextberry-upgrade.sh ]
+if [ -f "$SCRIPTS"/nextberry-upgrade.sh ]
 then
     sleep 0.1
 else
@@ -229,14 +231,14 @@ else
 fi
 
 # Sets secure permissions after upgrade
-if [ -f $SCRIPTS/setup_secure_permissions_nextcloud.sh ]
+if [ -f "$SCRIPTS"/setup_secure_permissions_nextcloud.sh ]
 then
-    rm $SCRIPTS/setup_secure_permissions_nextcloud.sh
-    wget -q $STATIC/setup_secure_permissions_nextcloud.sh -P $SCRIPTS
+    rm "$SCRIPTS"/setup_secure_permissions_nextcloud.sh
+    wget -q "$STATIC"/setup_secure_permissions_nextcloud.sh -P "$SCRIPTS"
 else
-    wget -q $STATIC/setup_secure_permissions_nextcloud.sh -P $SCRIPTS
+    wget -q "$STATIC"/setup_secure_permissions_nextcloud.sh -P "$SCRIPTS"
 fi
-if [ -f $SCRIPTS/setup_secure_permissions_nextcloud.sh ]
+if [ -f "$SCRIPTS"/setup_secure_permissions_nextcloud.sh ]
 then
     sleep 0.1
 else
@@ -246,14 +248,14 @@ else
 fi
 
 # Change MySQL password
-if [ -f $SCRIPTS/change_mysql_pass.sh ]
+if [ -f "$SCRIPTS"/change_mysql_pass.sh ]
 then
-    rm $SCRIPTS/change_mysql_pass.sh
-    wget -q $STATIC/change_mysql_pass.sh
+    rm "$SCRIPTS"/change_mysql_pass.sh
+    wget -q "$STATIC"/change_mysql_pass.sh
 else
-    wget -q $STATIC/change_mysql_pass.sh -P $SCRIPTS
+    wget -q "$STATIC"/change_mysql_pass.sh -P "$SCRIPTS"
 fi
-if [ -f $SCRIPTS/change_mysql_pass.sh ]
+if [ -f "$SCRIPTS"/change_mysql_pass.sh ]
 then
     sleep 0.1
 else
@@ -263,14 +265,14 @@ else
 fi
 
 # Get figlet Tech and Me
-if [ -f $SCRIPTS/nextcloud.sh ]
+if [ -f "$SCRIPTS"/nextcloud.sh ]
 then
-    rm $SCRIPTS/nextcloud.sh
-    wget -q $STATIC/nextcloud.sh -P $SCRIPTS
+    rm "$SCRIPTS"/nextcloud.sh
+    wget -q "$STATIC"/nextcloud.sh -P "$SCRIPTS"
 else
-    wget -q $STATIC/nextcloud.sh -P $SCRIPTS
+    wget -q "$STATIC"/nextcloud.sh -P "$SCRIPTS"
 fi
-if [ -f $SCRIPTS/nextcloud.sh ]
+if [ -f "$SCRIPTS"/nextcloud.sh ]
 then
     sleep 0.1
 else
@@ -280,23 +282,23 @@ else
 fi
 
 # Get the Welcome Screen when http://$address
-if [ -f $SCRIPTS/index.php ]
+if [ -f "$SCRIPTS"/index.php ]
 then
-    rm $SCRIPTS/index.php
-    wget -q $GITHUB_REPO/index.php -P $SCRIPTS
+    rm "$SCRIPTS"/index.php
+    wget -q $GITHUB_REPO/index.php -P "$SCRIPTS"
 else
-    wget -q $GITHUB_REPO/index.php -P $SCRIPTS
+    wget -q $GITHUB_REPO/index.php -P "$SCRIPTS"
 fi
 
-mv $SCRIPTS/index.php $HTML/index.php && rm -f $HTML/html/index.html
+mv "$SCRIPTS"/index.php $HTML/index.php && rm -f $HTML/html/index.html
 chmod 750 $HTML/index.php && chown www-data:www-data $HTML/index.php
 
 # Change 000-default to $WEB_ROOT
 sed -i "s|DocumentRoot /var/www/html|DocumentRoot $HTML|g" /etc/apache2/sites-available/000-default.conf
 
 # Make $SCRIPTS excutable
-chmod +x -R $SCRIPTS
-chown root:root -R $SCRIPTS
+chmod +x -R "$SCRIPTS"
+chown root:root -R "$SCRIPTS"
 
 # Allow $UNIXUSER to run figlet script
 chown "$UNIXUSER":"$UNIXUSER" "$SCRIPTS/nextcloud.sh"
@@ -371,7 +373,7 @@ NCDB=nextcloud_db
 printf "\nEnabling UTF8mb4 support on $NCDB....\n"
 echo "Please be patient, it may take a while."
 sudo /etc/init.d/mysql restart & spinner_loading
-RESULT="mysqlshow --user=root --password=$(cat $PW_FILE) $NCDB| grep -v Wildcard | grep -o $NCDB"
+RESULT="mysqlshow --user=root --password=$(cat "$PW_FILE") $NCDB| grep -v Wildcard | grep -o $NCDB"
 if [ "$RESULT" == "$NCDB" ]; then
     check_command mysql -u root -e "ALTER DATABASE $NCDB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
     wait
@@ -385,27 +387,27 @@ clear
 
 # Install Apps
 function collabora {
-    echo "collabora.sh:" >> $SCRIPTS/logs
-    bash $SCRIPTS/collabora.sh
-    rm $SCRIPTS/collabora.sh
+    echo "collabora.sh:" >> "$SCRIPTS"/logs
+    bash "$SCRIPTS"/collabora.sh
+    rm "$SCRIPTS"/collabora.sh
 }
 
 function nextant {
-    echo "nextant.sh:" >> $SCRIPTS/logs
-    bash $SCRIPTS/nextant.sh
-    rm $SCRIPTS/nextant.sh
+    echo "nextant.sh:" >> "$SCRIPTS"/logs
+    bash "$SCRIPTS"/nextant.sh
+    rm "$SCRIPTS"/nextant.sh
 }
 
 function passman {
-    echo "passman.sh:" >> $SCRIPTS/logs
-    bash $SCRIPTS/passman.sh
-    rm $SCRIPTS/passman.sh
+    echo "passman.sh:" >> "$SCRIPTS"/logs
+    bash "$SCRIPTS"/passman.sh
+    rm "$SCRIPTS"/passman.sh
 }
 
 function spreedme {
-    echo "spreedme.sh:" >> $SCRIPTS/logs
-    bash $SCRIPTS/spreedme.sh
-    rm $SCRIPTS/spreedme.sh
+    echo "spreedme.sh:" >> "$SCRIPTS"/logs
+    bash "$SCRIPTS"/spreedme.sh
+    rm "$SCRIPTS"/spreedme.sh
 }
 
 cat << LETSENC
@@ -418,7 +420,7 @@ LETSENC
 # Let's Encrypt
 if [[ "yes" == $(ask_yes_or_no "Do you want to install SSL?") ]]
 then
-    bash $SCRIPTS/activate-ssl.sh
+    bash "$SCRIPTS"/activate-ssl.sh
 else
     echo
     echo "OK, but if you want to run it later, just type: sudo bash $SCRIPTS/activate-ssl.sh"
@@ -461,9 +463,9 @@ clear
 # Add extra security
 if [[ "yes" == $(ask_yes_or_no "Do you want to add extra security, based on this: http://goo.gl/gEJHi7 ?") ]]
 then
-    echo "security.sh:" >> $SCRIPTS/logs
-    bash $SCRIPTS/security.sh
-    rm "$SCRIPTS"/security.sh
+    echo "security.sh:" >> "$SCRIPTS"/logs
+    bash "$SCRIPTS"/security.sh
+    rm ""$SCRIPTS""/security.sh
 else
     echo
     echo "OK, but if you want to run it later, just type: sudo bash $SCRIPTS/security.sh"
@@ -514,11 +516,11 @@ then
 fi
 
 # Install latest updates
-echo "nextberry-upgrade.sh:" >> $SCRIPTS/logs
-bash $SCRIPTS/nextberry-upgrade.sh
+echo "nextberry-upgrade.sh:" >> "$SCRIPTS"/logs
+bash "$SCRIPTS"/nextberry-upgrade.sh
 
 # Add temporary fix if needed
-echo "temporary-fix.sh:" >> $SCRIPTS/logs
+echo "temporary-fix.sh:" >> "$SCRIPTS"/logs
 bash $SCRIPTS/temporary-fix.sh
 rm "$SCRIPTS"/temporary-fix.sh
 
@@ -565,7 +567,7 @@ ADDRESS2=$(grep "address" /etc/network/interfaces | awk '$1 == "address" { print
 
 # Upgrade system
 echo "System will now upgrade..."
-bash $SCRIPTS/update.sh
+bash "$SCRIPTS"/update.sh
 
 # Cleanup 2
 apt autoremove -y
@@ -594,7 +596,7 @@ printf "${Color_Off}\n"
 clear
 
 # Set trusted domain in config.php
-echo "trusted.sh:" >> $SCRIPTS/logs
+echo "trusted.sh:" >> "$SCRIPTS"/logs
 bash "$SCRIPTS"/trusted.sh
 rm -f "$SCRIPTS"/trusted.sh
 
@@ -606,12 +608,12 @@ grep "password" $MYCNF > /root/.tmp
 sed -i 's|password=||g' /root/.tmp
 sed -i "s|'||g" /root/.tmp
 PW=$(cat /root/.tmp)
-sed -i "s|$PW|XXX-SQL-PASS-XXX|g" $SCRIPTS/logs
+sed -i "s|$PW|XXX-SQL-PASS-XXX|g" "$SCRIPTS"/logs
 rm /root/.tmp
 
 # Log file
 echo "pastebinit -i $SCRIPTS/logs -a nextcloud_installation_$DATE -b https://paste.ubuntu.com > $SCRIPTS/.pastebinit" > /usr/sbin/install-log
-sed -i 's|http|https|g' $SCRIPTS/.pastebinit
+sed -i 's|http|https|g' "$SCRIPTS"/.pastebinit
 echo "clear" >> /usr/sbin/install-log
 echo "exec $SCRIPTS/nextcloud.sh" >> /usr/sbin/install-log
 chmod 770 /usr/sbin/install-log

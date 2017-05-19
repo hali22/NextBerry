@@ -131,8 +131,8 @@ ufw allow 80/tcp
 ufw allow 443/tcp
 
 # Set NextBerry version for the updater tool
-echo "$NEXTBERRYVERSION" > $SCRIPTS/.version-nc
-echo "$NEXTBERRYVERSIONCLEAN" >> $SCRIPTS/.version-nc
+echo "$NEXTBERRYVERSION" > "$SCRIPTS"/.version-nc
+echo "$NEXTBERRYVERSIONCLEAN" >> "$SCRIPTS"/.version-nc
 
 # Change DNS
 if ! [ -x "$(command -v resolvconf)" ]
@@ -176,12 +176,12 @@ else
 fi
 
 # Update system
-apt update -q2 & spinner_loading
+apt update -q4 & spinner_loading
 
 # Write MySQL pass to file and keep it safe
-echo "$MYSQL_PASS" > $PW_FILE
-chmod 600 $PW_FILE
-chown root:root $PW_FILE
+echo "$MYSQL_PASS" > "$PW_FILE"
+chmod 600 "$PW_FILE"
+chown root:root "$PW_FILE"
 
 # Install MYSQL
 apt install software-properties-common -y
@@ -224,7 +224,7 @@ a2enmod rewrite \
         setenvif
 
 # Install PHP 7.0
-apt update -q2 & spinner_loading
+apt update -q4 & spinner_loading
 check_command apt install -y \
     libapache2-mod-php7.0 \
     php7.0-common \
@@ -263,7 +263,7 @@ rm "$HTML/$STABLEVERSION.tar.bz2"
 
 # Secure permissions
 download_static_script setup_secure_permissions_nextcloud
-bash $SECURE & spinner_loading
+bash "$SECURE" & spinner_loading
 
 # Install Nextcloud
 cd "$NCPATH"
@@ -459,7 +459,7 @@ check_command run_static_script change-root-profile
 run_static_script redis-server-ubuntu16
 
 # Upgrade
-apt update -q2 & spinner_loading
+apt update -q4 & spinner_loading
 apt dist-upgrade -y
 
 # Remove LXD (always shows up as failed during boot)
@@ -477,7 +477,7 @@ apt autoclean
 find /root "/home/$UNIXUSER" -type f \( -name '*.sh*' -o -name '*.html*' -o -name '*.tar*' -o -name '*.zip*' \) -delete
 
 # Set secure permissions final (./data/.htaccess has wrong permissions otherwise)
-bash $SECURE & spinner_loading
+bash "$SECURE" & spinner_loading
 
 # Reboot
 echo "Installation done, system will now reboot..."
