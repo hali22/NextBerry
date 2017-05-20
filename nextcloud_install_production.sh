@@ -207,7 +207,7 @@ a2enmod rewrite \
 
 # Install PHP 7.0
 apt-get update -q4 & spinner_loading
-check_command apt-get install -t stretch -y \
+check_command apt-get install -y \
     libapache2-mod-php7.0 \
     php7.0-common \
     php7.0-mysql \
