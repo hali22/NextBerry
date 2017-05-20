@@ -49,6 +49,7 @@ calc_wt_size() {
 }
 
 do_usb() {
+  cat /dev/null > /etc/motd
 	get_init_sys
 	whiptail --msgbox "Please use an external power supply (USB HUB) to power your HDD/SSD. This will increase the RPI's performance.\n\n All of your data will be deleted if you continue please backup/save your files on the HD/SSD that we are going to use first\n\n Now please connect the HD/SSD to the RPI and make sure its the only storage device (USB keyboard dongle is fine, just no other USB STORAGE or HD's.\n\n Having multiple devices plugged in will mess up the installation and you will have to start over." $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT
 
@@ -183,6 +184,8 @@ fi
 }
 
 do_expand_rootfs() {
+
+  cat /dev/null > /etc/motd
 
 # Previous line is more prone to errors: sed -e '10,31d' /root/.profile
 cat <<EOF > /root/.profile
