@@ -87,6 +87,7 @@ apt-get install -y  module-init-tools \
                 landscape-common \
                 pastebinit \
                 figlet \
+                git \
 		            libminiupnpc10
 
 # Create $SCRIPTS dir

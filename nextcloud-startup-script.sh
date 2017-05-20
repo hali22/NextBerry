@@ -380,31 +380,6 @@ check_command sudo -u www-data $NCPATH/occ maintenance:repair
 run_app_script phpmyadmin_install_ubuntu16
 clear
 
-# Install Apps
-function collabora {
-    echo "collabora.sh:" >> "$SCRIPTS"/logs
-    bash "$SCRIPTS"/collabora.sh
-    rm "$SCRIPTS"/collabora.sh
-}
-
-function nextant {
-    echo "nextant.sh:" >> "$SCRIPTS"/logs
-    bash "$SCRIPTS"/nextant.sh
-    rm "$SCRIPTS"/nextant.sh
-}
-
-function passman {
-    echo "passman.sh:" >> "$SCRIPTS"/logs
-    bash "$SCRIPTS"/passman.sh
-    rm "$SCRIPTS"/passman.sh
-}
-
-function spreedme {
-    echo "spreedme.sh:" >> "$SCRIPTS"/logs
-    bash "$SCRIPTS"/spreedme.sh
-    rm "$SCRIPTS"/spreedme.sh
-}
-
 cat << LETSENC
 +-----------------------------------------------+
 |  The following script will install a trusted  |
@@ -427,7 +402,8 @@ whiptail --title "Which apps do you want to install?" --checklist --separate-out
 "Collabora" "(Online editing)   " OFF \
 "Nextant" "(Full text search)   " OFF \
 "Passman" "(Password storage)   " OFF \
-"Spreed.ME" "(Video calls)   " OFF 2>results
+"Spreed.ME" "(Video calls)      " OFF \
+"Previewgenerator" "(Decrease load time)" ON 2>results
 
 while read -r -u 9 choice
 do
@@ -446,6 +422,9 @@ do
 
         Spreed.ME)
             run_app_script spreedme
+        ;;
+        Previewgenerator)
+            run_app_script previewgenerator
         ;;
 
         *)
