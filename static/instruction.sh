@@ -5,7 +5,7 @@
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
-. <(curl -sL https://raw.githubusercontent.com/nextcloud/vm/master/lib.sh)
+. <(curl -sL https://raw.githubusercontent.com/techandme/NextBerry/master/lib.sh)
 
 # Check for errors + debug code and abort if something isn't right
 # 1 = ON
@@ -20,7 +20,7 @@ cat << INST1
 |                                                                       |
 INST1
 echo -e "|"  "${Green}To run the startup script type the sudoer password. This will either${Color_Off}  |"
-echo -e "|"  "${Green}be the default ('nextcloud') or the one chosen during installation.${Color_Off}   |"
+echo -e "|"  "${Green}be the default ('nextberry') or the one chosen during installation.${Color_Off}   |"
 cat << INST2
 |                                                                       |
 | If you have never done this before you can follow the complete        |

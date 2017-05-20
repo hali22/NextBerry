@@ -61,34 +61,13 @@ then
     exit 1
 fi
 
-# Progressbar
-echo "Dpkg::Progress-Fancy "1";" > /etc/apt/apt.conf.d/99progressbar
-
-# Enable php7.0 repo
-sed -i 's|jessie|stretch|' /etc/apt/sources.list
-echo "Package: *" > /etc/apt/preferences
-echo "Pin: release n=jessie" >> /etc/apt/preferences
-echo "Pin-Priority: 600" >> /etc/apt/preferences
-
 # Update and upgrade
 apt-get autoclean
 apt-get	autoremove -y
 apt-get update
-apt-get full-upgrade -y
+apt-get upgrade -y
 apt-get install -fy
 dpkg --configure --pending
-
-# Install various packages
-apt-get install -y  module-init-tools \
-		            miredo \
-                rsync \
-                ca-certificates \
-                unzip \
-                landscape-common \
-                pastebinit \
-                figlet \
-                git \
-		            libminiupnpc10
 
 # Create $SCRIPTS dir
 if [ ! -d "$SCRIPTS" ]
@@ -188,7 +167,6 @@ chmod 600 "$PW_FILE"
 chown root:root "$PW_FILE"
 
 # Install MYSQL
-apt-get install software-properties-common -y
 echo "mysql-server mysql-server/root_password password $MYSQL_PASS" | debconf-set-selections
 echo "mysql-server mysql-server/root_password_again password $MYSQL_PASS" | debconf-set-selections
 check_command apt-get install mysql-server -y
@@ -294,7 +272,7 @@ sed -i "s|max_execution_time = 30|max_execution_time = 3500|g" /etc/php/7.0/apac
 # max_input_time
 sed -i "s|max_input_time = 60|max_input_time = 3600|g" /etc/php/7.0/apache2/php.ini
 # memory_limit
-sed -i "s|memory_limit = 128M|memory_limit = 512M|g" /etc/php/7.0/apache2/php.ini
+sed -i "s|memory_limit = 128M|memory_limit = 256M|g" /etc/php/7.0/apache2/php.ini
 # post_max
 sed -i "s|post_max_size = 8M|post_max_size = 1100M|g" /etc/php/7.0/apache2/php.ini
 # upload_max
@@ -423,7 +401,7 @@ sudo -u www-data php "$NCPATH"/occ config:system:set preview_libreoffice_path --
 whiptail --title "Which apps/programs do you want to install?" --checklist --separate-output "" 10 40 3 \
 "Calendar" "              " on \
 "Contacts" "              " on \
-"Webmin" "              " on 2>results
+"Webmin" "              " off 2>results
 
 while read -r -u 9 choice
 do

@@ -2,7 +2,7 @@
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
-. <(curl -sL https://raw.githubusercontent.com/nextcloud/vm/master/lib.sh)
+. <(curl -sL https://raw.githubusercontent.com/techandme/NextBerry/master/lib.sh)
 
 # Tech and Me © - 2017, https://www.techandme.se/
 
@@ -17,21 +17,6 @@ if ! is_root
 then
     echo "Must be root to run script, in Ubuntu type: sudo -i"
     exit 1
-fi
-
-# Check Ubuntu version
-echo "Checking server OS and version..."
-if [ "$OS" != 1 ]
-then
-    echo "Ubuntu Server is required to run this script."
-    echo "Please install that distro and try again."
-    exit 1
-fi
-
-
-if ! version 16.04 "$DISTRO" 16.04.4; then
-    echo "Ubuntu version $DISTRO must be between 16.04 - 16.04.4"
-    exit
 fi
 
 # Check if dir exists
