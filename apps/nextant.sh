@@ -42,8 +42,8 @@ fi
 echo "Starting to setup Solr & Nextant on Nextcloud..."
 
 # Installing requirements
-apt update -q4 & spinner_loading
-apt install default-jre -y
+apt-get update -q4 & spinner_loading
+apt-get install default-jre -y
 
 # Getting and installing Apache Solr
 echo "Installing Apache Solr"
@@ -66,7 +66,7 @@ sudo sed -i '35,37  s/"jetty.host" \//"jetty.host" default="127.0.0.1" \//' $SOL
 iptables -A INPUT -p tcp -s localhost --dport 8983 -j ACCEPT
 iptables -A INPUT -p tcp --dport 8983 -j DROP
 # Not tested
-#sudo apt install iptables-persistent
+#sudo apt-get install iptables-persistent
 #sudo service iptables-persistent start
 #sudo iptables-save > /etc/iptables.conf
 

@@ -16,7 +16,7 @@ debug_mode
 # Based on: http://www.techrepublic.com/blog/smb-technologist/secure-your-apache-server-from-ddos-slowloris-and-dns-injection-attacks/
 
 # Protect against DDOS
-apt -y install libapache2-mod-evasive
+apt-get -y install libapache2-mod-evasive
 mkdir -p /var/log/apache2/evasive
 chown -R www-data:root /var/log/apache2/evasive
 if [ ! -f $ENVASIVE ]
@@ -34,11 +34,11 @@ ENVASIVE
 fi
 
 # Protect against Slowloris
-#apt -y install libapache2-mod-qos
+#apt-get -y install libapache2-mod-qos
 a2enmod reqtimeout # http://httpd.apache.org/docs/2.4/mod/mod_reqtimeout.html
 
 # Protect against DNS Injection
-apt -y install libapache2-mod-spamhaus
+apt-get -y install libapache2-mod-spamhaus
 if [ ! -f $SPAMHAUS ]
 then
     touch $SPAMHAUS

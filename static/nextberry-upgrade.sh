@@ -30,16 +30,16 @@ if grep -q "11 applied" "$VERSIONFILE"; then
   echo "11 already applied..."
 else
   # Update and upgrade
-  apt autoclean
+  apt-get autoclean
   apt	autoremove -y
-  apt update
-  apt full-upgrade -y
-  apt install -fy
+  apt-get update
+  apt-get full-upgrade -y
+  apt-get install -fy
   dpkg --configure --pending
 
   # Actual version additions
-  apt update
-  apt install -y  build-essential \
+  apt-get update
+  apt-get install -y  build-essential \
                   lm-sensors \
                   landscape-common \
                   ncdu
@@ -67,21 +67,21 @@ if grep -q "12 applied" "$VERSIONFILE"; then
   echo "12 already applied..."
 else
 # Update and upgrade
-apt autoclean
+apt-get autoclean
 apt	autoremove -y
-apt update
-apt full-upgrade -y
-apt install -fy
+apt-get update
+apt-get full-upgrade -y
+apt-get install -fy
 dpkg --configure --pending
 bash /var/scripts/update.sh
 
 # Unattended-upgrades
 # Install packages
-apt update
-DEBIAN_FRONTEND=noninteractive apt install -y unattended-upgrades \
+apt-get update
+DEBIAN_FRONTEND=noninteractive apt-get install -y unattended-upgrades \
                                                 update-notifier-common
 
-# Set apt config
+# Set apt-get config
 echo "APT::Periodic::Update-Package-Lists \"1\";" > /etc/apt/apt.conf.d/20auto-upgrades
 echo "APT::Periodic::Unattended-Upgrade \"1\";" >> /etc/apt/apt.conf.d/20auto-upgrades
 echo "APT::Periodic::Enable \"1\";" > /etc/apt/apt.conf.d/10periodic
@@ -103,9 +103,9 @@ else
 fi
 
 # New wifi setup
-apt update
+apt-get update
 sudo usermod -a -G netdev ncadmin
-DEBIAN_FRONTEND=noninteractive apt install -y wicd-curses
+DEBIAN_FRONTEND=noninteractive apt-get install -y wicd-curses
 
 if [ -f $SCRIPTS/wireless.sh ] ;then
     rm $SCRIPTS/wireless.sh

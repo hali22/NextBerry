@@ -61,15 +61,19 @@ then
     exit 1
 fi
 
+# Progressbar
+echo "Dpkg::Progress-Fancy "1";" > /etc/apt/apt.conf.d/99progressbar
+
 # Update and upgrade
-apt	autoremove -y
-apt update
-apt full-upgrade -y
-apt install -fy
+apt-get autoclean
+apt-get	autoremove -y
+apt-get update
+apt-get full-upgrade -y
+apt-get install -fy
 dpkg --configure --pending
 
 # Install various packages
-apt install -y  module-init-tools \
+apt-get install -y  module-init-tools \
 		            miredo \
                 rsync \
                 ca-certificates \
@@ -130,7 +134,7 @@ echo "$NEXTBERRYVERSIONCLEAN" >> "$SCRIPTS"/.version-nc
 # Change DNS
 if ! [ -x "$(command -v resolvconf)" ]
 then
-    apt install resolvconf -y -q
+    apt-get install resolvconf -y -q
     dpkg-reconfigure resolvconf
 fi
 echo "nameserver 8.8.8.8" > /etc/resolvconf/resolv.conf.d/base
@@ -139,11 +143,11 @@ echo "nameserver 8.8.4.4" >> /etc/resolvconf/resolv.conf.d/base
 # Check network
 if ! [ -x "$(command -v nslookup)" ]
 then
-    apt install dnsutils -y -q
+    apt-get install dnsutils -y -q
 fi
 if ! [ -x "$(command -v ifup)" ]
 then
-    apt install ifupdown -y -q
+    apt-get install ifupdown -y -q
 fi
 sudo ifdown "$IFACE" && sudo ifup "$IFACE"
 if ! nslookup google.com
@@ -153,7 +157,7 @@ then
 fi
 
 # Set locales
-#apt install language-pack-en-base -y
+#apt-get install language-pack-en-base -y
 sudo locale-gen "en_US.UTF-8" && sudo dpkg-reconfigure --frontend=noninteractive locales
 
 # Set keyboard layout
@@ -169,7 +173,7 @@ else
 fi
 
 # Update system
-apt update -q4 & spinner_loading
+apt-get update -q4 & spinner_loading
 
 # Write MySQL pass to file and keep it safe
 echo "$MYSQL_PASS" > "$PW_FILE"
@@ -177,13 +181,13 @@ chmod 600 "$PW_FILE"
 chown root:root "$PW_FILE"
 
 # Install MYSQL
-apt install software-properties-common -y
+apt-get install software-properties-common -y
 echo "mysql-server mysql-server/root_password password $MYSQL_PASS" | debconf-set-selections
 echo "mysql-server mysql-server/root_password_again password $MYSQL_PASS" | debconf-set-selections
-check_command apt install mysql-server -y
+check_command apt-get install mysql-server -y
 
 # mysql_secure_installation
-apt -y install expect
+apt-get -y install expect
 SECURE_MYSQL=$(expect -c "
 set timeout 10
 spawn mysql_secure_installation
@@ -204,10 +208,10 @@ send \"y\r\"
 expect eof
 ")
 echo "$SECURE_MYSQL"
-apt -y purge expect
+apt-get -y purge expect
 
 # Install Apache
-check_command apt install apache2 -y
+check_command apt-get install apache2 -y
 a2enmod rewrite \
         headers \
         env \
@@ -217,8 +221,8 @@ a2enmod rewrite \
         setenvif
 
 # Install PHP 7.0
-apt update -q4 & spinner_loading
-check_command apt install -y \
+apt-get update -q4 & spinner_loading
+check_command apt-get install -y \
     libapache2-mod-php7.0 \
     php7.0-common \
     php7.0-mysql \
@@ -404,7 +408,7 @@ sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtpname --value="www.
 sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtppassword --value="vinr vhpa jvbh hovy"
 
 # Install Libreoffice Writer to be able to read MS documents.
-sudo apt install --no-install-recommends libreoffice-writer -y
+sudo apt-get install --no-install-recommends libreoffice-writer -y
 sudo -u www-data php "$NCPATH"/occ config:system:set preview_libreoffice_path --value="/usr/bin/libreoffice"
 
 
@@ -452,21 +456,21 @@ check_command run_static_script change-root-profile
 run_static_script redis-server-ubuntu16
 
 # Upgrade
-apt update -q4 & spinner_loading
-apt dist-upgrade -y
+apt-get update -q4 & spinner_loading
+apt-get dist-upgrade -y
 
 # Remove LXD (always shows up as failed during boot)
-apt purge lxd -y
+apt-get purge lxd -y
 
 # Cleanup login screen
 rm /etc/update-motd.d/00-header
 rm /etc/update-motd.d/10-help-text
 
 # Cleanup
-CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e ''"$(uname -r | cut -f1,2 -d"-")"'' | grep -e '[0-9]' | xargs sudo apt -y purge)
+CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e ''"$(uname -r | cut -f1,2 -d"-")"'' | grep -e '[0-9]' | xargs sudo apt-get -y purge)
 echo "$CLEARBOOT"
-apt autoremove -y
-apt autoclean
+apt-get autoremove -y
+apt-get autoclean
 find /root "/home/$UNIXUSER" -type f \( -name '*.sh*' -o -name '*.html*' -o -name '*.tar*' -o -name '*.zip*' \) -delete
 
 # Set secure permissions final (./data/.htaccess has wrong permissions otherwise)

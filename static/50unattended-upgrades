@@ -55,7 +55,7 @@ Unattended-Upgrade::Automatic-Reboot "true";
 //  Default: "now"
 Unattended-Upgrade::Automatic-Reboot-Time "02:00";
 
-// Use apt bandwidth limit feature, this example limits the download
+// Use apt-get bandwidth limit feature, this example limits the download
 // speed to 70kb/sec
 // Acquire::http::Dl-Limit "10000";
 

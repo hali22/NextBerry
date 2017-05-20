@@ -59,8 +59,8 @@ echo "phpmyadmin phpmyadmin/app-password-confirm password $PW_FILE" | debconf-se
 echo "phpmyadmin phpmyadmin/mysql/admin-pass password $PW_FILE" | debconf-set-selections
 echo "phpmyadmin phpmyadmin/mysql/app-pass password $PW_FILE" | debconf-set-selections
 echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2" | debconf-set-selections
-apt update -q4 & spinner_loading
-apt install -y -q \
+apt-get update -q4 & spinner_loading
+apt-get install -y -q \
     php-gettext \
     phpmyadmin
 

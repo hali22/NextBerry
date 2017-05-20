@@ -62,7 +62,7 @@ else
   while read -r line; do
       i=$(( i + 1 ))
       echo $i
-  done < <(apt update; apt install whiptail -y)
+  done < <(apt-get update; apt-get install whiptail -y)
 } | whiptail --title "Progress" --gauge "Please wait while installing Whiptail..." 6 60 0
 
 fi
@@ -565,9 +565,9 @@ echo "System will now upgrade..."
 bash "$SCRIPTS"/update.sh
 
 # Cleanup 2
-apt autoremove -y
-apt autoclean
-CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e "$(uname -r | cut -f1,2 -d"-")" | grep -e "[0-9]" | xargs sudo apt -y purge)
+apt-get autoremove -y
+apt-get autoclean
+CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e "$(uname -r | cut -f1,2 -d"-")" | grep -e "[0-9]" | xargs sudo apt-get -y purge)
 echo "$CLEARBOOT"
 
 ADDRESS2=$(grep "address" /etc/network/interfaces | awk '$1 == "address" { print $2 }')

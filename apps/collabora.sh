@@ -24,7 +24,7 @@ fi
 whiptail --msgbox "Please before you start, make sure that port 443 is directly forwarded to this machine!" "$WT_HEIGHT" "$WT_WIDTH"
 
 # Get the latest packages
-apt update -q4 & spinner_loading
+apt-get update -q4 & spinner_loading
 
 # Check if Nextcloud is installed
 echo "Checking if Nextcloud is installed..."
@@ -63,28 +63,28 @@ else
 fi
 
 # Check if 443 is open using nmap, if not notify the user
-apt update -q4 & spinner_loading
+apt-get update -q4 & spinner_loading
 if [ "$(dpkg-query -W -f='${Status}' nmap 2>/dev/null | grep -c "ok installed")" == "1" ]
 then
       echo "nmap is already installed..."
 else
-    apt install nmap -y
+    apt-get install nmap -y
 fi
 if [ "$(nmap -sS -p 443 "$WANIP4" | grep -c "open")" == "1" ]
 then
   printf "${Green}Port 443 is open on $WANIP4!${Color_Off}\n"
-  apt remove --purge nmap -y
+  apt-get remove --purge nmap -y
 else
   echo "Port 443 is not open on $WANIP4. We will do a second try on $SUBDOMAIN instead."
   any_key "Press any key to test $SUBDOMAIN... "
   if [[ "$(nmap -sS -PN -p 443 "$SUBDOMAIN" | grep -m 1 "open" | awk '{print $2}')" = "open" ]]
   then
       printf "${Green}Port 443 is open on $SUBDOMAIN!${Color_Off}\n"
-      apt remove --purge nmap -y
+      apt-get remove --purge nmap -y
   else
       whiptail --msgbox "Port 443 is not open on $SUBDOMAIN. Please follow this guide to open ports in your router: https://www.techandme.se/open-port-80-443/" "$WT_HEIGHT" "$WT_WIDTH"
       any_key "Press any key to exit... "
-      apt remove --purge nmap -y
+      apt-get remove --purge nmap -y
       exit 1
   fi
 fi
@@ -94,8 +94,8 @@ if [ "$(dpkg-query -W -f='${Status}' docker-ce 2>/dev/null | grep -c "ok install
 then
     docker -v
 else
-    apt update -q4 & spinner_loading
-    apt install -y \
+    apt-get update -q4 & spinner_loading
+    apt-get install -y \
     apt-transport-https \
     ca-certificates \
     curl \
@@ -106,14 +106,14 @@ else
     "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
     $(lsb_release -cs) \
     stable"
-    apt update
-    apt install docker-ce -y
+    apt-get update
+    apt-get install docker-ce -y
     docker -v
 fi
 
 # Load aufs
 apt-get install linux-image-extra-"$(uname -r)" -y
-# apt install aufs-tools -y # already included in the docker-ce package
+# apt-get install aufs-tools -y # already included in the docker-ce package
 AUFS=$(grep -r "aufs" /etc/modules)
 if ! [ "$AUFS" = "aufs" ]
 then
@@ -159,7 +159,7 @@ else
     while read -r line; do
         ((i++))
         echo $i
-    done < <(apt install apache2 -y)
+    done < <(apt-get install apache2 -y)
     } | whiptail --title "Progress" --gauge "Please wait while installing Apache2" 6 60 0
 fi
 
@@ -244,10 +244,10 @@ then
 else
     echo "Installing letsencrypt..."
     add-apt-repository ppa:certbot/certbot -y
-    apt update -q4 & spinner_loading
-    apt install letsencrypt -y -q
-    apt update -q4 & spinner_loading
-    apt dist-upgrade -y
+    apt-get update -q4 & spinner_loading
+    apt-get install letsencrypt -y -q
+    apt-get update -q4 & spinner_loading
+    apt-get dist-upgrade -y
 fi
 
 # Stop Apache to aviod port conflicts
