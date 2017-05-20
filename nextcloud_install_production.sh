@@ -1,5 +1,5 @@
 #!/bin/bash
-# shellcheck disable=2034,2059
+# shellcheck disable=2034,2059,2140
 true
 # shellcheck source=lib.sh
 FIRST_IFACE=1 && CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/nextcloud/vm/master/lib.sh)
