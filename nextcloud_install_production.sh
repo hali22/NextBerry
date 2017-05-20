@@ -64,6 +64,12 @@ fi
 # Progressbar
 echo "Dpkg::Progress-Fancy "1";" > /etc/apt/apt.conf.d/99progressbar
 
+# Enable php7.0 repo
+sed -i 's|jessie|stretch|' /etc/apt/sources.list
+echo "Package: *" > /etc/apt/preferences
+echo "Pin: release n=jessie" >> /etc/apt/preferences
+echo "Pin-Priority: 600" >> /etc/apt/preferences
+
 # Update and upgrade
 apt-get autoclean
 apt-get	autoremove -y
@@ -222,7 +228,7 @@ a2enmod rewrite \
 
 # Install PHP 7.0
 apt-get update -q4 & spinner_loading
-check_command apt-get install -y \
+check_command apt-get install -t stretch -y \
     libapache2-mod-php7.0 \
     php7.0-common \
     php7.0-mysql \
