@@ -234,13 +234,11 @@ EOF
     mount /dev/mmcblk0p1 /boot
   fi
 
-  echo "smsc95xx.turbo_mode=N net.ifnames=0 biosdevname=0 dwc_otg.lpm_enable=0 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait quiet splash" > /boot/cmdline.txt
+  echo "smsc95xx.turbo_mode=N net.ifnames=0 biosdevname=0 dwc_otg.lpm_enable=0 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait splash" > /boot/cmdline.txt
   rm /boot/config.txt
   wget -q https://raw.githubusercontent.com/techandme/NextBerry/master/static/config.txt -P /boot/
 
- bash /usr/lib/raspi-config/init_resize.sh 2>&1 | tee -a /var/scripts/logs
-
-    whiptail --msgbox "Success, we will now reboot to finish..." 20 60 1
+    whiptail --msgbox "Success, we will now reboot to finish..." 10 60 1
 		reboot
 }
 
