@@ -150,6 +150,7 @@ else
     exit 1
 fi
 
+# Check network
 if network_ok
 then
     printf "${Green}Online!${Color_Off}\n"
@@ -164,6 +165,8 @@ else
     mv /etc/network/interfaces.new /etc/network/interfaces
     service networking restart
     # shellcheck source=lib.sh
+    CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/techandme/NextBerry/master/lib.sh)
+    unset CHECK_CURRENT_REPO
 fi
 
 # Check network
