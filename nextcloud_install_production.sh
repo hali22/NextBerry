@@ -205,27 +205,6 @@ a2enmod rewrite \
         ssl \
         setenvif
 
-# Install PHP 7.0
-apt-get update -q4 & spinner_loading
-check_command apt-get install -y \
-    libapache2-mod-php \
-    php-common \
-    php-mysql \
-    php-intl \
-    php-mcrypt \
-    php-ldap \
-    php-imap \
-    php-cli \
-    php-gd \
-    php-pgsql \
-    php-json \
-    php-sqlite3 \
-    php-curl \
-    php-xml \
-    php-zip \
-    php-mbstring \
-    php-smbclient
-
 # Enable SMB client
  echo '# This enables php-smbclient' >> /etc/php/7.0/apache2/php.ini
  echo 'extension="smbclient.so"' >> /etc/php/7.0/apache2/php.ini
