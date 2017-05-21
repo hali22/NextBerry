@@ -22,10 +22,15 @@ then
 fi
 
 # Erase some dev tracks
+apt-get purge miredo -y
 cat /dev/null > /var/log/syslog
 
 # Prefer IPv4
 sed -i "s|#precedence ::ffff:0:0/96  100|precedence ::ffff:0:0/96  100|g" /etc/gai.conf
+
+# Change hostname
+hostnamectl set-hostname nextberry
+sed -i 's|raspberrypi|nextberry localhost nextcloud|g' /etc/hosts
 
 # Show current user
 clear
@@ -61,6 +66,21 @@ then
     #exit 1
 fi
 
+# Package Pin-Priority
+cat << PRIO > "/etc/apt/preferences.d/all"
+Package: *
+Pin: release a=stable
+Pin-Priority: 500
+
+Package: php
+Pin: origin "http://repozytorium.mati75.eu/raspbian"
+Pin-Priority: 990
+
+Package: *
+Pin: origin "http://repozytorium.mati75.eu/raspbian"
+Pin-Priority: 50
+PRIO
+
 # Update and upgrade
 apt-get autoclean
 apt-get	autoremove -y
@@ -68,23 +88,16 @@ apt-get update
 apt-get upgrade -y
 apt-get install -fy
 dpkg --configure --pending
+apt-get install -y htop git
+
+# Enable apps to connect to RPI and read vcgencmd
+usermod -aG video $NCUSER
 
 # Create $SCRIPTS dir
 if [ ! -d "$SCRIPTS" ]
 then
     mkdir -p "$SCRIPTS"
 fi
-
-## Set swapfile
-#fallocate -l 1G /swapfile
-#chmod 600 /swapfile
-#mkswap /swapfile
-#echo "/swapfile   none    swap    sw    0   0" >> /etc/fstab
-#swapon /swapfile
-#sudo chown root:root /swapfile
-#sudo chmod 0600 /swapfile
-#sync
-#partprobe
 
 # Set swap if we're using a HD
 if [ ! -f "$NCUSER/.hd" ]
@@ -100,9 +113,6 @@ fi
 # Only use swap to prevent out of memory. Speed and less tear on SD
 echo "vm.swappiness = 0" >> /etc/sysctl.conf
 sysctl -p
-
-# Set /etc/hosts
-sed -i 's|127.0.0.1       localhost|127.0.0.1       localhost nextcloud|' /etc/hosts
 
 # Setup firewall-rules
 wget -q "$STATIC/firewall-rules" -P /usr/sbin/
@@ -427,8 +437,7 @@ apt-get dist-upgrade -y
 apt-get purge lxd -y
 
 # Cleanup login screen
-rm /etc/update-motd.d/00-header
-rm /etc/update-motd.d/10-help-text
+cat /dev/null > /etc/motd
 
 # Cleanup
 CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e ''"$(uname -r | cut -f1,2 -d"-")"'' | grep -e '[0-9]' | xargs sudo apt-get -y purge)

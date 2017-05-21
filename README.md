@@ -28,7 +28,7 @@
 ## Machine configuration
 Please check the configuration here: https://www.techandme.se/machine-setup-nextcloud/
 
-Note: this build does not inlude Webmin.
+Note: this build does not inlude Webmin, you'll be asked to have it installed for you.
 
 ## Support the development
 * [Create a PR](https://help.github.com/articles/creating-a-pull-request/) and improve the code

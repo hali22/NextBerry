@@ -13,7 +13,7 @@ true
 DEBUG=0
 debug_mode
 
-crontab -u www-data -l | { cat; echo "*/15  *  *  *  * php $NCPATH/occ preview:pre-generate"; } | crontab -u www-data -
+crontab -u www-data -l | { cat; echo "15  *  *  *  * php $NCPATH/occ preview:pre-generate"; } | crontab -u www-data -
 
 # Download and install previewgenerator
 echo "Installing preview generator..."

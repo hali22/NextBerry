@@ -12,6 +12,15 @@ then
     exit 1
 fi
 
+# Update and upgrade
+apt-get autoclean
+apt-get	autoremove -y
+apt-get update
+apt-get upgrade -y
+apt-get install -fy
+dpkg --configure --pending
+bash /var/scripts/update.sh
+
 # Whiptail auto-size
 calc_wt_size() {
 export WT_HEIGHT=17
@@ -29,16 +38,8 @@ export WT_HEIGHT=17
 if grep -q "11 applied" "$VERSIONFILE"; then
   echo "11 already applied..."
 else
-  # Update and upgrade
-  apt-get autoclean
-  apt-get	autoremove -y
-  apt-get update
-  apt-get full-upgrade -y
-  apt-get install -fy
-  dpkg --configure --pending
 
   # Actual version additions
-  apt-get update
   apt-get install -y  build-essential \
                   lm-sensors
 
@@ -57,14 +58,6 @@ fi
 if grep -q "12 applied" "$VERSIONFILE"; then
   echo "12 already applied..."
 else
-# Update and upgrade
-apt-get autoclean
-apt-get	autoremove -y
-apt-get update
-apt-get full-upgrade -y
-apt-get install -fy
-dpkg --configure --pending
-bash /var/scripts/update.sh
 
 # Unattended-upgrades
 # Install packages

@@ -92,7 +92,7 @@ then
 else
     echo
     echo "Network NOT OK. You must have a working Network connection to run this script."
-    echo "Please report this issue here: https://github.com/techandme/nextberry/issues/new"
+    echo "Please report this issue here: https://github.com/techandme/NextBerry/issues/new"
     exit 1
 fi
 
@@ -103,9 +103,9 @@ echo "Getting scripts from GitHub to be able to run the first setup..."
 if [ -f "$SCRIPTS"/passman.sh ]
 then
     rm "$SCRIPTS"/passman.sh
-    wget -q "$STATIC"/passman.sh -P "$SCRIPTS"
+    wget -q "$APP"/passman.sh -P "$SCRIPTS"
 else
-    wget -q "$STATIC"/passman.sh -P "$SCRIPTS"
+    wget -q "$APP"/passman.sh -P "$SCRIPTS"
 fi
 if [ -f "$SCRIPTS"/passman.sh ]
 then
@@ -137,9 +137,9 @@ fi
 if [ -f "$SCRIPTS"/nextant.sh ]
 then
     rm "$SCRIPTS"/nextant.sh
-    wget -q "$STATIC"/nextant.sh -P "$SCRIPTS"
+    wget -q "$APP"/nextant.sh -P "$SCRIPTS"
 else
-    wget -q "$STATIC"/nextant.sh -P "$SCRIPTS"
+    wget -q "$APP"/nextant.sh -P "$SCRIPTS"
 fi
 if [ -f "$SCRIPTS"/nextant.sh ]
 then
@@ -524,7 +524,7 @@ rm -f "$SCRIPTS/instruction.sh"
 rm -f "$NCDATA/nextcloud.log"
 rm -f "$SCRIPTS/nextcloud-startup-script.sh"
 find /root "/home/$UNIXUSER" -type f \( -name '*.sh*' -o -name '*.html*' -o -name '*.tar*' -o -name '*.zip*' \) -delete
-sed -i "s|instruction.sh|nextcloud.sh|g" "/home/$UNIXUSER/.bash_profile"
+sed -i "s|instruction.sh|nextcloud.sh|g" "/home/$UNIXUSER/.profile"
 
 truncate -s 0 \
     /root/.bash_history \
@@ -535,7 +535,7 @@ truncate -s 0 \
     /var/log/apache2/error.log \
     /var/log/cronjobs_success.log
 
-sed -i "s|sudo -i||g" "/home/$UNIXUSER/.bash_profile"
+sed -i "s|sudo -i||g" "/home/$UNIXUSER/.profile"
 cat << RCLOCAL > "/etc/rc.local"
 #!/bin/sh -e
 #
@@ -556,10 +556,6 @@ RCLOCAL
 clear
 
 ADDRESS2=$(grep "address" /etc/network/interfaces | awk '$1 == "address" { print $2 }')
-
-# Upgrade system
-echo "System will now upgrade..."
-bash "$SCRIPTS"/update.sh
 
 # Cleanup 2
 apt-get autoremove -y
@@ -604,11 +600,10 @@ sed -i "s|$PW|XXX-SQL-PASS-XXX|g" "$SCRIPTS"/logs
 rm /root/.tmp
 
 # Log file
-echo "pastebinit -i $SCRIPTS/logs -a nextcloud_installation_$DATE -b https://paste.ubuntu.com > $SCRIPTS/.pastebinit" > /usr/sbin/install-log
-sed -i 's|http|https|g' "$SCRIPTS"/.pastebinit
+echo "pastebinit -i $SCRIPTS/logs -a nextcloud_installation_$DATE -b paste.ubuntu.com > $SCRIPTS/.pastebinit" > /usr/sbin/install-log
 echo "clear" >> /usr/sbin/install-log
 echo "exec $SCRIPTS/nextcloud.sh" >> /usr/sbin/install-log
-chmod 770 /usr/sbin/install-log
+chmod 750 /usr/sbin/install-log
 
 # Reboot
 rm -f "$SCRIPTS/nextcloud-startup-script.sh"
