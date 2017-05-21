@@ -116,6 +116,23 @@ else
     exit 1
 fi
 
+# Get previewgenerator script
+if [ -f "$SCRIPTS"/previewgenerator.sh ]
+then
+   rm "$SCRIPTS"/previewgenerator.sh
+   wget -q "$APP"/previewgenerator.sh -P "$SCRIPTS"
+else
+   wget -q "$APP"/previewgenerator.sh -P "$SCRIPTS"
+fi
+if [ -f "$SCRIPTS"/previewgenerator.sh ]
+then
+   sleep 0.1
+else
+   echo "previewgenerator failed"
+   echo "Script failed to download. Please run: 'sudo bash $SCRIPTS/previewgenerator.sh' again."
+   exit 1
+fi
+
 # Get nextant script
 if [ -f "$SCRIPTS"/nextant.sh ]
 then
@@ -402,8 +419,7 @@ whiptail --title "Which apps do you want to install?" --checklist --separate-out
 "Collabora" "(Online editing)   " OFF \
 "Nextant" "(Full text search)   " OFF \
 "Passman" "(Password storage)   " OFF \
-"Spreed.ME" "(Video calls)      " OFF \
-"Previewgenerator" "(Decrease load time)" ON 2>results
+"Spreed.ME" "(Video calls)      " OFF 2>results
 
 while read -r -u 9 choice
 do
@@ -423,9 +439,6 @@ do
         Spreed.ME)
             run_app_script spreedme
         ;;
-        Previewgenerator)
-            run_app_script previewgenerator
-        ;;
 
         *)
         ;;
@@ -433,6 +446,8 @@ do
 done 9< results
 rm -f results
 clear
+
+
 
 # Add extra security
 if [[ "yes" == $(ask_yes_or_no "Do you want to add extra security, based on this: http://goo.gl/gEJHi7 ?") ]]
