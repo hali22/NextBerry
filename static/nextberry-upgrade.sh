@@ -31,7 +31,7 @@ if grep -q "11 applied" "$VERSIONFILE"; then
 else
   # Update and upgrade
   apt-get autoclean
-  apt	autoremove -y
+  apt-get	autoremove -y
   apt-get update
   apt-get full-upgrade -y
   apt-get install -fy
@@ -40,20 +40,11 @@ else
   # Actual version additions
   apt-get update
   apt-get install -y  build-essential \
-                  lm-sensors \
-                  landscape-common \
-                  ncdu
+                  lm-sensors
 
   # NCDU
   echo "sudo ncdu /" > /usr/sbin/fs-size
   chmod +x /usr/sbin/fs-size
-
-  # Remove first MOTD
-  rm /etc/update-motd.d/50-landscape-sysinfo
-
-  # Also stop it from running at everylogin, only called by nextcloud.sh
-  whiptail --msgbox "In the next screen please select:  \n\n        Do not display sysinfo on login" 10 60
-  dpkg-reconfigure landscape-common
 
   # Set what version is installed
   echo "11 applied" >> "$VERSIONFILE"
@@ -68,7 +59,7 @@ if grep -q "12 applied" "$VERSIONFILE"; then
 else
 # Update and upgrade
 apt-get autoclean
-apt	autoremove -y
+apt-get	autoremove -y
 apt-get update
 apt-get full-upgrade -y
 apt-get install -fy
@@ -77,7 +68,6 @@ bash /var/scripts/update.sh
 
 # Unattended-upgrades
 # Install packages
-apt-get update
 DEBIAN_FRONTEND=noninteractive apt-get install -y unattended-upgrades \
                                                 update-notifier-common
 
@@ -103,7 +93,6 @@ else
 fi
 
 # New wifi setup
-apt-get update
 sudo usermod -a -G netdev ncadmin
 DEBIAN_FRONTEND=noninteractive apt-get install -y wicd-curses
 
@@ -133,6 +122,20 @@ sed -i 's|V1.1|V1.2|g' "$VERSIONFILE"
 
 # Done - Move this line to the new release on every new version.
 whiptail --msgbox "Successfully installed V1.2, please manually reboot..." 10 65
+fi
+
+if grep -q "13 applied" "$VERSIONFILE"; then
+  echo "13 already applied..."
+else
+
+# Set what version is installed
+echo "13 applied" >> "$VERSIONFILE"
+# Change current version var
+sed -i 's|012|013|g' "$VERSIONFILE"
+sed -i 's|V1.2|V1.3|g' "$VERSIONFILE"
+
+# Done - Move this line to the new release on every new version.
+whiptail --msgbox "Successfully installed V1.3, please manually reboot..." 10 65
 fi
 
 exit
