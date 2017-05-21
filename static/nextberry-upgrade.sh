@@ -124,6 +124,7 @@ sed -i 's|V1.1|V1.2|g' "$VERSIONFILE"
 whiptail --msgbox "Successfully installed V1.2, please manually reboot..." 10 65
 fi
 
+################### V1.3 ####################
 if grep -q "13 applied" "$VERSIONFILE"; then
   echo "13 already applied..."
 else

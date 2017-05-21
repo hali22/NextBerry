@@ -30,7 +30,7 @@ apt-get update -q4 & spinner_loading
 sudo apt-get install -q -y \
     build-essential \
     tcl8.5 \
-    php7.0-dev \
+    php-dev \
     php-pear
 
 # Install PHPmodule
