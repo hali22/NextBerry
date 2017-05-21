@@ -226,7 +226,6 @@ check_command apt-get install -y \
     php-xml \
     php-zip \
     php-mbstring
-
 check_command apt-get install -t jessie-backports php-smbclient -y
 
 # Enable SMB client
