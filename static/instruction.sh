@@ -27,7 +27,7 @@ cat << INST2
 | installation instructions here: https://goo.gl/JVxuPh                 |
 |                                                                       |
 | You can schedule the Nextcloud update process using a cron job.       |
-| This is done using a script built into this VM that automatically     |
+| This is done using a script built into this RPI that automatically    |
 | updates Nextcloud, sets secure permissions, and logs the successful   |
 | update to /var/log/cronjobs_success.log                               |
 | Detailed instructions for setting this up can be found here:          |

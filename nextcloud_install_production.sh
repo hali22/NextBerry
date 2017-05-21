@@ -2,7 +2,7 @@
 # shellcheck disable=2034,2059,2140
 true
 # shellcheck source=lib.sh
-FIRST_IFACE=1 && CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/nextcloud/vm/master/lib.sh)
+FIRST_IFACE=1 && CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/techandme/NextBerry/master/lib.sh)
 unset FIRST_IFACE
 unset CHECK_CURRENT_REPO
 
@@ -52,13 +52,13 @@ fi
 if [ "$(dpkg-query -W -f='${Status}' apache2 2>/dev/null | grep -c "ok installed")" == "1" ]
 then
     echo "Apache2 is installed, it must be a clean server."
-    exit 1
+    #exit 1
 fi
 
 if [ "$(dpkg-query -W -f='${Status}' php 2>/dev/null | grep -c "ok installed")" == "1" ]
 then
     echo "PHP is installed, it must be a clean server."
-    exit 1
+    #exit 1
 fi
 
 # Update and upgrade

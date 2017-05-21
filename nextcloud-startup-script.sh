@@ -147,8 +147,6 @@ else
     mv /etc/network/interfaces.new /etc/network/interfaces
     service networking restart
     # shellcheck source=lib.sh
-    CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/techandme/nextberry/master/lib.sh)
-    unset CHECK_CURRENT_REPO
 fi
 
 # Check network
@@ -160,6 +158,8 @@ else
     printf "Please report this issue here: $ISSUES"
     exit 1
 fi
+
+systemctl daemon-reload
 
 echo
 echo "Getting scripts from GitHub to be able to run the first setup..."
@@ -364,16 +364,16 @@ then
 fi
 
 # Enable UTF8mb4 (4-byte support)
-NCDB=nextcloud_db
-printf "\nEnabling UTF8mb4 support on $NCDB....\n"
-echo "Please be patient, it may take a while."
-sudo /etc/init.d/mysql restart & spinner_loading
-RESULT="mysqlshow --user=root --password=$(cat "$PW_FILE") $NCDB| grep -v Wildcard | grep -o $NCDB"
-if [ "$RESULT" == "$NCDB" ]; then
-    check_command mysql -u root -e "ALTER DATABASE $NCDB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
-    wait
-fi
-check_command sudo -u www-data $NCPATH/occ config:system:set mysql.utf8mb4 --type boolean --value="true"
+#NCDB=nextcloud_db
+#printf "\nEnabling UTF8mb4 support on $NCDB....\n"
+#echo "Please be patient, it may take a while."
+#sudo /etc/init.d/mysql restart & spinner_loading
+#RESULT="mysqlshow --user=root --password=$(cat "$PW_FILE") $NCDB| grep -v Wildcard | grep -o $NCDB"
+#if [ "$RESULT" == "$NCDB" ]; then
+#    check_command mysql -u root -e "ALTER DATABASE $NCDB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
+#    wait
+#fi
+#check_command sudo -u www-data $NCPATH/occ config:system:set mysql.utf8mb4 --type boolean --value="true"
 check_command sudo -u www-data $NCPATH/occ maintenance:repair
 
 # Install phpMyadmin
