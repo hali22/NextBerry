@@ -22,7 +22,6 @@ then
 fi
 
 # Erase some dev tracks
-apt-get purge miredo -y
 cat /dev/null > /var/log/syslog
 
 # Prefer IPv4
@@ -57,28 +56,21 @@ fi
 if [ "$(dpkg-query -W -f='${Status}' apache2 2>/dev/null | grep -c "ok installed")" == "1" ]
 then
     echo "Apache2 is installed, it must be a clean server."
-    #exit 1
+    exit 1
 fi
 
 if [ "$(dpkg-query -W -f='${Status}' php 2>/dev/null | grep -c "ok installed")" == "1" ]
 then
     echo "PHP is installed, it must be a clean server."
-    #exit 1
+    exit 1
 fi
 
 # Package Pin-Priority
-cat << PRIO > "/etc/apt/preferences.d/all"
+cat << PRIO > "/etc/apt/preferences"
 Package: *
-Pin: release a=stable
+Pin: origin "mirrordirector.raspbian.org"
 Pin-Priority: 500
 
-Package: php
-Pin: origin "http://repozytorium.mati75.eu/raspbian"
-Pin-Priority: 990
-
-Package: *
-Pin: origin "http://repozytorium.mati75.eu/raspbian"
-Pin-Priority: 50
 PRIO
 
 # Update and upgrade
@@ -214,6 +206,28 @@ a2enmod rewrite \
         mime \
         ssl \
         setenvif
+a2dissite 000-default.conf
+
+# Install PHP7.0
+check_command apt-get install -y \
+    libapache2-mod-php \
+    php-common \
+    php-mysql \
+    php-intl \
+    php-mcrypt \
+    php-ldap \
+    php-imap \
+    php-cli \
+    php-gd \
+    php-pgsql \
+    php-json \
+    php-sqlite3 \
+    php-curl \
+    php-xml \
+    php-zip \
+    php-mbstring
+
+check_command apt-get install -t jessie-backports php-smbclient -y
 
 # Enable SMB client
  echo '# This enables php-smbclient' >> /etc/php/7.0/apache2/php.ini
