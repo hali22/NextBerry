@@ -1,19 +1,12 @@
 #!/bin/bash
-
-# Tech and Me © - 2017, https://www.techandme.se/
-
-# Erase some dev tracks
-cat /dev/null > /var/log/syslog
-
-# Prefer IPv4
-sed -i "s|#precedence ::ffff:0:0/96  100|precedence ::ffff:0:0/96  100|g" /etc/gai.conf
-
-# shellcheck disable=2034,2059
+# shellcheck disable=2034,2059,2140
 true
 # shellcheck source=lib.sh
-FIRST_IFACE=1 && CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/nextcloud/vm/master/lib.sh)
+FIRST_IFACE=1 && CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/techandme/NextBerry/master/lib.sh)
 unset FIRST_IFACE
 unset CHECK_CURRENT_REPO
+
+# Tech and Me © - 2017, https://www.techandme.se/
 
 # Check for errors + debug code and abort if something isn't right
 # 1 = ON
@@ -28,30 +21,22 @@ then
     exit 1
 fi
 
+# Erase some dev tracks
+cat /dev/null > /var/log/syslog
+
+# Prefer IPv4
+sed -i "s|#precedence ::ffff:0:0/96  100|precedence ::ffff:0:0/96  100|g" /etc/gai.conf
+
+# Change hostname
+hostnamectl set-hostname nextberry
+sed -i 's|raspberrypi|nextberry localhost nextcloud|g' /etc/hosts
+
 # Show current user
+clear
 echo
 echo "Current user with sudo permissions is: $UNIXUSER".
 echo "This script will set up everything with that user."
-echo "If the field after ':' is blank you are probably running as a pure root user."
-echo "It's possible to install with root, but there will be minor errors."
-echo
-echo "Please create a user with sudo permissions if you want an optimal installation."
 run_static_script adduser
-
-# Check Ubuntu version
-echo "Checking server OS and version..."
-if [ "$OS" != 1 ]
-then
-    echo "Ubuntu Server is required to run this script."
-    echo "Please install that distro and try again."
-    exit 1
-fi
-
-
-if ! version 16.04 "$DISTRO" 16.04.4; then
-    echo "Ubuntu version $DISTRO must be between 16.04 - 16.04.4"
-    exit
-fi
 
 # Check if key is available
 if ! wget -q -T 10 -t 2 "$NCREPO" > /dev/null
@@ -80,29 +65,25 @@ then
     exit 1
 fi
 
+# Package Pin-Priority
+cat << PRIO > "/etc/apt/preferences"
+Package: *
+Pin: origin "mirrordirector.raspbian.org"
+Pin-Priority: 500
+
+PRIO
+
 # Update and upgrade
-apt autoclean
-apt	autoremove -y
-apt update
-apt full-upgrade -y
-apt install -fy
+apt-get autoclean
+apt-get	autoremove -y
+apt-get update
+apt-get upgrade -y
+apt-get install -fy
 dpkg --configure --pending
+apt-get install -y htop git
 
-# Install various packages
-apt install -y ntpdate \
-		            module-init-tools \
-		            miredo \
-                rsync \
-                zram-config \
-                ca-certificates \
-                unzip \
-                landscape-common \
-                pastebinit \
-                figlet \
-		            libminiupnpc10
-
-# Fix time issues
-ntpdate -u ntp.ubuntu.com
+# Enable apps to connect to RPI and read vcgencmd
+usermod -aG video $NCUSER
 
 # Create $SCRIPTS dir
 if [ ! -d "$SCRIPTS" ]
@@ -110,23 +91,20 @@ then
     mkdir -p "$SCRIPTS"
 fi
 
-# Set swapfile
-fallocate -l 1G /swapfile
-chmod 600 /swapfile
-mkswap /swapfile
-echo "/swapfile   none    swap    sw    0   0" >> /etc/fstab
-swapon /swapfile
-sudo chown root:root /swapfile
-sudo chmod 0600 /swapfile
-sync
-partprobe
+# Set swap if we're using a HD
+if [ ! -f "$NCUSER/.hd" ]
+then
+sed -i 's|#CONF_SWAPFILE=/var/swap|CONF_SWAPFILE=/var/swap|g' /etc/dphys-swapfile
+sed -i 's|#CONF_SWAPSIZE=100|CONF_SWAPSIZE=1000|g' /etc/dphys-swapfile
+sed -i 's|#CONF_MAXSWAP=2048|CONF_MAXSWAP=2048|g' /etc/dphys-swapfile
+/etc/init.d/dphys-swapfile stop
+/etc/init.d/dphys-swapfile start
+/etc/init.d/dphys-swapfile swapon
+fi
 
 # Only use swap to prevent out of memory. Speed and less tear on SD
 echo "vm.swappiness = 0" >> /etc/sysctl.conf
 sysctl -p
-
-# Set /etc/hosts
-sed -i 's|127.0.0.1       localhost|127.0.0.1       localhost nextcloud|' /etc/hosts
 
 # Setup firewall-rules
 wget -q "$STATIC/firewall-rules" -P /usr/sbin/
@@ -138,13 +116,13 @@ ufw allow 80/tcp
 ufw allow 443/tcp
 
 # Set NextBerry version for the updater tool
-echo "$NEXTBERRYVERSION" > $SCRIPTS/.version-nc
-echo "$NEXTBERRYVERSIONCLEAN" >> $SCRIPTS/.version-nc
+echo "$NEXTBERRYVERSION" > "$SCRIPTS"/.version-nc
+echo "$NEXTBERRYVERSIONCLEAN" >> "$SCRIPTS"/.version-nc
 
 # Change DNS
 if ! [ -x "$(command -v resolvconf)" ]
 then
-    apt install resolvconf -y -q
+    apt-get install resolvconf -y -q
     dpkg-reconfigure resolvconf
 fi
 echo "nameserver 8.8.8.8" > /etc/resolvconf/resolv.conf.d/base
@@ -153,11 +131,11 @@ echo "nameserver 8.8.4.4" >> /etc/resolvconf/resolv.conf.d/base
 # Check network
 if ! [ -x "$(command -v nslookup)" ]
 then
-    apt install dnsutils -y -q
+    apt-get install dnsutils -y -q
 fi
 if ! [ -x "$(command -v ifup)" ]
 then
-    apt install ifupdown -y -q
+    apt-get install ifupdown -y -q
 fi
 sudo ifdown "$IFACE" && sudo ifup "$IFACE"
 if ! nslookup google.com
@@ -167,8 +145,8 @@ then
 fi
 
 # Set locales
-apt install language-pack-en-base -y
-sudo locale-gen "sv_SE.UTF-8" && sudo dpkg-reconfigure --frontend=noninteractive locales
+#apt-get install language-pack-en-base -y
+sudo locale-gen "en_US.UTF-8" && sudo dpkg-reconfigure --frontend=noninteractive locales
 
 # Set keyboard layout
 echo "Current keyboard layout is $(localectl status | grep "Layout" | awk '{print $3}')"
@@ -183,21 +161,20 @@ else
 fi
 
 # Update system
-apt update -q4 & spinner_loading
+apt-get update -q4 & spinner_loading
 
 # Write MySQL pass to file and keep it safe
-echo "$MYSQL_PASS" > $PW_FILE
-chmod 600 $PW_FILE
-chown root:root $PW_FILE
+echo "$MYSQL_PASS" > "$PW_FILE"
+chmod 600 "$PW_FILE"
+chown root:root "$PW_FILE"
 
-# Install MYSQL 5.7
-apt install software-properties-common -y
-echo "mysql-server-5.7 mysql-server/root_password password $MYSQL_PASS" | debconf-set-selections
-echo "mysql-server-5.7 mysql-server/root_password_again password $MYSQL_PASS" | debconf-set-selections
-check_command apt install mysql-server-5.7 -y
+# Install MYSQL
+echo "mysql-server mysql-server/root_password password $MYSQL_PASS" | debconf-set-selections
+echo "mysql-server mysql-server/root_password_again password $MYSQL_PASS" | debconf-set-selections
+check_command apt-get install mysql-server -y
 
 # mysql_secure_installation
-apt -y install expect
+apt-get -y install expect
 SECURE_MYSQL=$(expect -c "
 set timeout 10
 spawn mysql_secure_installation
@@ -218,10 +195,10 @@ send \"y\r\"
 expect eof
 ")
 echo "$SECURE_MYSQL"
-apt -y purge expect
+apt-get -y purge expect
 
 # Install Apache
-check_command apt install apache2 -y
+check_command apt-get install apache2 -y
 a2enmod rewrite \
         headers \
         env \
@@ -229,27 +206,27 @@ a2enmod rewrite \
         mime \
         ssl \
         setenvif
+a2dissite 000-default.conf
 
-# Install PHP 7.0
-apt update -q4 & spinner_loading
-check_command apt install -y \
-    libapache2-mod-php7.0 \
-    php7.0-common \
-    php7.0-mysql \
-    php7.0-intl \
-    php7.0-mcrypt \
-    php7.0-ldap \
-    php7.0-imap \
-    php7.0-cli \
-    php7.0-gd \
-    php7.0-pgsql \
-    php7.0-json \
-    php7.0-sqlite3 \
-    php7.0-curl \
-    php7.0-xml \
-    php7.0-zip \
-    php7.0-mbstring \
-    php-smbclient
+# Install PHP7.0
+check_command apt-get install -y \
+    libapache2-mod-php \
+    php-common \
+    php-mysql \
+    php-intl \
+    php-mcrypt \
+    php-ldap \
+    php-imap \
+    php-cli \
+    php-gd \
+    php-pgsql \
+    php-json \
+    php-sqlite3 \
+    php-curl \
+    php-xml \
+    php-zip \
+    php-mbstring
+check_command apt-get install -t jessie-backports php-smbclient -y
 
 # Enable SMB client
  echo '# This enables php-smbclient' >> /etc/php/7.0/apache2/php.ini
@@ -270,7 +247,7 @@ rm "$HTML/$STABLEVERSION.tar.bz2"
 
 # Secure permissions
 download_static_script setup_secure_permissions_nextcloud
-bash $SECURE & spinner_loading
+bash "$SECURE" & spinner_loading
 
 # Install Nextcloud
 cd "$NCPATH"
@@ -297,7 +274,7 @@ sed -i "s|max_execution_time = 30|max_execution_time = 3500|g" /etc/php/7.0/apac
 # max_input_time
 sed -i "s|max_input_time = 60|max_input_time = 3600|g" /etc/php/7.0/apache2/php.ini
 # memory_limit
-sed -i "s|memory_limit = 128M|memory_limit = 512M|g" /etc/php/7.0/apache2/php.ini
+sed -i "s|memory_limit = 128M|memory_limit = 256M|g" /etc/php/7.0/apache2/php.ini
 # post_max
 sed -i "s|post_max_size = 8M|post_max_size = 1100M|g" /etc/php/7.0/apache2/php.ini
 # upload_max
@@ -418,16 +395,15 @@ sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtpname --value="www.
 sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtppassword --value="vinr vhpa jvbh hovy"
 
 # Install Libreoffice Writer to be able to read MS documents.
-sudo apt install --no-install-recommends libreoffice-writer -y
+sudo apt-get install --no-install-recommends libreoffice-writer -y
 sudo -u www-data php "$NCPATH"/occ config:system:set preview_libreoffice_path --value="/usr/bin/libreoffice"
 
 
 # Nextcloud apps
 whiptail --title "Which apps/programs do you want to install?" --checklist --separate-output "" 10 40 3 \
->>>>>>> 5c7a89f58c97f1aa27134be10148df89a16d3fc8
 "Calendar" "              " on \
 "Contacts" "              " on \
-"Webmin" "              " on 2>results
+"Webmin" "              " off 2>results
 
 while read -r -u 9 choice
 do
@@ -467,25 +443,24 @@ check_command run_static_script change-root-profile
 run_static_script redis-server-ubuntu16
 
 # Upgrade
-apt update -q4 & spinner_loading
-apt dist-upgrade -y
+apt-get update -q4 & spinner_loading
+apt-get dist-upgrade -y
 
 # Remove LXD (always shows up as failed during boot)
-apt purge lxd -y
+apt-get purge lxd -y
 
 # Cleanup login screen
-rm /etc/update-motd.d/00-header
-rm /etc/update-motd.d/10-help-text
+cat /dev/null > /etc/motd
 
 # Cleanup
-CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e ''"$(uname -r | cut -f1,2 -d"-")"'' | grep -e '[0-9]' | xargs sudo apt -y purge)
+CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e ''"$(uname -r | cut -f1,2 -d"-")"'' | grep -e '[0-9]' | xargs sudo apt-get -y purge)
 echo "$CLEARBOOT"
-apt autoremove -y
-apt autoclean
+apt-get autoremove -y
+apt-get autoclean
 find /root "/home/$UNIXUSER" -type f \( -name '*.sh*' -o -name '*.html*' -o -name '*.tar*' -o -name '*.zip*' \) -delete
 
 # Set secure permissions final (./data/.htaccess has wrong permissions otherwise)
-bash $SECURE & spinner_loading
+bash "$SECURE" & spinner_loading
 
 # Reboot
 echo "Installation done, system will now reboot..."

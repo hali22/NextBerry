@@ -1,6 +1,6 @@
 ## Nextcloud for your RaspberryPI 2 or 3
 
-[![irc](https://img.shields.io/badge/irc%20channel-%23techandme%20on%20freenode-blue.svg)](https://webchat.freenode.net/?channels=techandme)[![Build Status](https://travis-ci.org/nextcloud/vm.svg?branch=master)](https://travis-ci.org/nextcloud/vm) [![stable](http://badges.github.io/stability-badges/dist/stable.svg)](http://github.com/badges/stability-badges)
+[![irc](https://img.shields.io/badge/irc%20channel-%23techandme%20on%20freenode-blue.svg)](https://webchat.freenode.net/?channels=techandme)[![Build Status](https://travis-ci.org/techandme/NextBerry.svg?branch=master)](https://travis-ci.org/techandme/NextBerry) [![stable](http://badges.github.io/stability-badges/dist/stable.svg)](http://github.com/badges/stability-badges)
 
 ## Login screen
 ![alt tag](https://raw.githubusercontent.com/techandme/NextBerry/master/nextberry-login-screen1.jpeg)
@@ -16,7 +16,8 @@
 * You? :)
 
 ## Image
-* [Image link](https://cloud.techandme.se/s/G6PaI0miBibhDwj)
+* [Image link](https://github.com/techandme/NextBerry/releases/tag/Images)
+* [Image mirror](https://cloud.techandme.se/s/G6PaI0miBibhDwj)
 
 ## Documentation
 [How to](https://github.com/techandme/NextBerry/wiki)
@@ -27,7 +28,7 @@
 ## Machine configuration
 Please check the configuration here: https://www.techandme.se/machine-setup-nextcloud/
 
-Note: this build does not inlude Webmin.
+Note: this build does not inlude Webmin, you'll be asked to have it installed for you.
 
 ## Support the development
 * [Create a PR](https://help.github.com/articles/creating-a-pull-request/) and improve the code

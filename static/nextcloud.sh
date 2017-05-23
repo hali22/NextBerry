@@ -11,7 +11,6 @@ CPUFREQ=$(cat /sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq)
 COREVOLT=$(vcgencmd measure_volts core)
 MEMARM=$(vcgencmd get_mem arm)
 MEMGPU=$(vcgencmd get_mem gpu)
-LANDSCAPE=$(/usr/bin/landscape-sysinfo  --exclude-sysinfo-plugins=LandscapeLink)
 WANIP4=$(curl -s ipinfo.io/ip -m 5)
 WANIP6=$(curl -s 6.ifcfg.me -m 5)
 ADDRESS=$(hostname -I | cut -d ' ' -f 1)
@@ -26,14 +25,12 @@ COLOR_WHITE='\033[1;37m'
 COLOR_DEFAULT='\033[0m'
 OS=$(printf "Operating system: %s (%s %s %s)\n" "$RELEASE" "$(uname -o)" "$(uname -r)" "$(uname -m)")
 clear
-echo -e "$COLOR_WHITE $($FIGLET -ckw 80 -f small NextBerry $CLEANVERSION) $COLOR_DEFAULT"
+echo -e "$COLOR_WHITE $($FIGLET -ckw 80 -f small NextBerry "$CLEANVERSION") $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE https://www.techandme.se                Uptime: $BIN_UPTIME $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE =============================================================================== $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE RPI: $TEMP - CPU freq: $CPUFREQ - $COREVOLT - MEM: $MEMGPU $MEMARM $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE =============================================================================== $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE $OS $COLOR_DEFAULT"
-echo -e "$COLOR_WHITE =============================================================================== $COLOR_DEFAULT"
-echo -e "$COLOR_WHITE $LANDSCAPE $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE =============================================================================== $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE WAN IPv4: $WANIP4 - WAN IPv6: $WANIP6 $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE LAN IPv4: $ADDRESS $COLOR_DEFAULT"
@@ -59,7 +56,7 @@ if [ "$GITHUBVERSION" -gt "$CURRENTVERSION" ]; then
       rm /home/ncadmin/nextberry-upgrade.sh
   fi
       wget -q https://raw.githubusercontent.com/techandme/NextBerry/master/static/nextberry-upgrade.sh -P /home/ncadmin/ && chmod +x /home/ncadmin/nextberry-upgrade.sh
-      if [[ $? > 0 ]]; then
+      if [[ $? -gt 0 ]]; then
       echo -e "$COLOR_WHITE Download of update script failed. Please file a bug report on https://github.com/techandme/NextBerry/issues/new $COLOR_DEFAULT"
       echo -e "$COLOR_WHITE =============================================================================== $COLOR_DEFAULT"
       fi

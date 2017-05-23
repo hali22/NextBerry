@@ -1,13 +1,23 @@
-#!/bin/sh
-# Part of raspi-config https://github.com/RPi-Distro/raspi-config
-#
-# See LICENSE file for copyright and license details
+#!/bin/bash
+# shellcheck disable=2034,2059
+true
+# shellcheck source=lib.sh
+FIRST_IFACE=1 && CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/techandme/NextBerry/master/lib.sh)
+unset FIRST_IFACE
+unset CHECK_CURRENT_REPO
+
+# Tech and Me © - 2017, https://www.techandme.se/
+
+# Check for errors + debug code and abort if something isn't right
+# 1 = ON
+# 0 = OFF
+DEBUG=0
+debug_mode
 
 INTERACTIVE=True
-ASK_TO_REBOOT=0
 
 is_live() {
-    grep -q "boot=live" $CMDLINE
+    grep -q "boot=live" "$CMDLINE"
     return $?
 }
 
@@ -35,10 +45,11 @@ calc_wt_size() {
   if [ "$WT_WIDTH" -gt 178 ]; then
     WT_WIDTH=120
   fi
-  WT_MENU_HEIGHT=$(($WT_HEIGHT-7))
+  WT_MENU_HEIGHT=$((WT_HEIGHT-7))
 }
 
 do_usb() {
+  cat /dev/null > /etc/motd
 	get_init_sys
 	whiptail --msgbox "Please use an external power supply (USB HUB) to power your HDD/SSD. This will increase the RPI's performance.\n\n All of your data will be deleted if you continue please backup/save your files on the HD/SSD that we are going to use first\n\n Now please connect the HD/SSD to the RPI and make sure its the only storage device (USB keyboard dongle is fine, just no other USB STORAGE or HD's.\n\n Having multiple devices plugged in will mess up the installation and you will have to start over." $WT_HEIGHT $WT_WIDTH $WT_MENU_HEIGHT
 
@@ -89,13 +100,27 @@ partprobe
   mke2fs -F -F -t ext4 -b 4096 -L 'PI_ROOT' $DEVHD
 	sed -i 's|/dev/mmcblk0p2|#/dev/mmcblk0p2|g' /etc/fstab
   GDEVHDUUID=$(blkid -o value -s PARTUUID $DEVHD)
-	echo "PARTUUID=$GDEVHDUUID  /               ext4   defaults,noatime  0       1" >> /etc/fstab
+  sed -i "s|.*ext4.*|PARTUUID=$GDEVHDUUID  /               ext4   defaults,noatime  0       1|g" /etc/fstab
 	mount $DEVHD /mnt
 
 clear
 echo "Moving from SD to HD/SSD, this can take a while! Sit back and relax..."
 echo
-rsync -aAXv --exclude={"/boot/*","/dev/*","/proc/*","/sys/*","/tmp/*","/run/*","/mnt/*","/media/*","/lost+found"} / /mnt
+cat <<EX > /tmp/rsync.excludes
+/boot/*
+/dev/*
+/proc/*
+/sys/*
+/tmp/*
+/run/*
+/mnt/*
+/media/*
+/lost+found/*
+EX
+
+rsync -aAXv --exclude-from=/tmp/rsync.excludes /* /mnt/
+
+touch /home/ncadmin/.hd
 
 # Previous line is more prone to errors: sed -e '10,31d' /root/.profile
 cat <<EOF > /mnt/root/.profile
@@ -147,12 +172,10 @@ else
   mount /dev/mmcblk0p1 /boot
 fi
 
-echo "smsc95xx.turbo_mode=N dwc_otg.fiq_fix_enable=1 net.ifnames=0 biosdevname=0 dwc_otg.lpm_enable=0 console=tty1 root=PARTUUID=$GDEVHDUUID rootfstype=ext4 elevator=deadline rootwait quiet splash" > /boot/cmdline.txt
-
-rm /boot/config.txt
-wget -q https://raw.githubusercontent.com/techandme/NextBerry/master/static/config.txt -P /boot/
-
-	whiptail --msgbox "Success, we will now reboot to finish switching /root...\n\n Please make sure you do not have a Wifi dongle plugged in before you press enter.\n\n This will make the next script fail, first finish using an ethernet cable.\n\n Afterwards you can setup a Wifi connection." 20 60 1
+  echo "smsc95xx.turbo_mode=N dwc_otg.fiq_fix_enable=1 net.ifnames=0 biosdevname=0 dwc_otg.lpm_enable=0 console=tty1 root=PARTUUID=$GDEVHDUUID rootfstype=ext4 elevator=deadline rootwait splash" > /boot/cmdline.txt
+  rm /boot/config.txt
+  wget -q https://raw.githubusercontent.com/techandme/NextBerry/master/static/config.txt -P /boot/
+	whiptail --msgbox "Success, we will now reboot to finish switching /root..." 20 60 1
   umount /mnt
 	reboot
 else
@@ -161,83 +184,8 @@ fi
 }
 
 do_expand_rootfs() {
-  get_init_sys
-  if [ $SYSTEMD -eq 1 ]; then
-    ROOT_PART=$(mount | sed -n 's|^/dev/\(.*\) on / .*|\1|p')
-  else
-    if ! [ -h /dev/root ]; then
-      whiptail --msgbox "/dev/root does not exist or is not a symlink. Don't know how to expand" 20 60 2
-      return 0
-    fi
-    ROOT_PART=$(readlink /dev/root)
-  fi
 
-  PART_NUM=${ROOT_PART#mmcblk0p}
-  if [ "$PART_NUM" = "$ROOT_PART" ]; then
-    whiptail --msgbox "$ROOT_PART is not an SD card. Don't know how to expand" 20 60 2
-    return 0
-  fi
-
-  # NOTE: the NOOBS partition layout confuses parted. For now, let's only
-  # agree to work with a sufficiently simple partition layout
-  if [ "$PART_NUM" -ne 2 ]; then
-    whiptail --msgbox "Your partition layout is not currently supported by this tool. You are probably using NOOBS, in which case your root filesystem is already expanded anyway." 20 60 2
-    return 0
-  fi
-
-  LAST_PART_NUM=$(parted /dev/mmcblk0 -ms unit s p | tail -n 1 | cut -f 1 -d:)
-  if [ $LAST_PART_NUM -ne $PART_NUM ]; then
-    whiptail --msgbox "$ROOT_PART is not the last partition. Don't know how to expand" 20 60 2
-    return 0
-  fi
-
-  # Get the starting offset of the root partition
-  PART_START=$(parted /dev/mmcblk0 -ms unit s p | grep "^${PART_NUM}" | cut -f 2 -d: | sed 's/[^0-9]//g')
-  [ "$PART_START" ] || return 1
-  # Return value will likely be error for fdisk as it fails to reload the
-  # partition table because the root fs is mounted
-  fdisk /dev/mmcblk0 <<EOF
-p
-d
-$PART_NUM
-n
-p
-$PART_NUM
-$PART_START
-
-p
-w
-EOF
-
-  # now set up an init.d script
-cat <<EOF > /etc/init.d/resize2fs_once &&
-#!/bin/sh
-### BEGIN INIT INFO
-# Provides:          resize2fs_once
-# Required-Start:
-# Required-Stop:
-# Default-Start: 3
-# Default-Stop:
-# Short-Description: Resize the root filesystem to fill partition
-# Description:
-### END INIT INFO
-
-. /lib/lsb/init-functions
-
-case "\$1" in
-  start)
-    log_daemon_msg "Starting resize2fs_once" &&
-    resize2fs /dev/$ROOT_PART &&
-    update-rc.d resize2fs_once remove &&
-    rm /etc/init.d/resize2fs_once &&
-    log_end_msg \$?
-    ;;
-  *)
-    echo "Usage: \$0 start" >&2
-    exit 3
-    ;;
-esac
-EOF
+  cat /dev/null > /etc/motd
 
 # Previous line is more prone to errors: sed -e '10,31d' /root/.profile
 cat <<EOF > /root/.profile
@@ -274,9 +222,6 @@ bash /var/scripts/nextcloud_install_production.sh 2>&1 | tee -a /var/scripts/log
 
 EOF
 
-  chmod +x /etc/init.d/resize2fs_once &&
-  update-rc.d resize2fs_once defaults &&
-
   # Overclock
   if [ -f /boot/cmdline.txt ]
   then
@@ -292,16 +237,16 @@ EOF
     mount /dev/mmcblk0p1 /boot
   fi
 
-  echo "smsc95xx.turbo_mode=N net.ifnames=0 biosdevname=0 dwc_otg.lpm_enable=0 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait quiet splash" > /boot/cmdline.txt
+  echo "smsc95xx.turbo_mode=N net.ifnames=0 biosdevname=0 dwc_otg.lpm_enable=0 console=tty1 root=/dev/mmcblk0p2 rootfstype=ext4 elevator=deadline rootwait splash" > /boot/cmdline.txt
   rm /boot/config.txt
   wget -q https://raw.githubusercontent.com/techandme/NextBerry/master/static/config.txt -P /boot/
 
-    whiptail --msgbox "Success, we will now reboot to finish resizing...\n\n Please make sure you do not have a Wifi dongle plugged in before you press enter.\n\n This will make the next script fail, first finish using an ethernet cable.\n\n Afterwards you can setup a Wifi connection." 20 60 1
+    whiptail --msgbox "Success, we will now reboot to finish..." 10 60 1
 		reboot
 }
 
 # Everything else needs to be run as root
-if [ $(id -u) -ne 0 ]; then
+if [ "$(id -u)" -ne 0 ]; then
   printf "Script must be run as root. Try 'sudo bash /var/scripts/resize-sd.sh'\n"
   exit 1
 fi

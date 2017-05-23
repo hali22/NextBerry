@@ -2,7 +2,7 @@
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
-. <(curl -sL https://raw.githubusercontent.com/nextcloud/vm/master/lib.sh)
+. <(curl -sL https://raw.githubusercontent.com/techandme/NextBerry/master/lib.sh)
 
 # Tech and Me © - 2017, https://www.techandme.se/
 
@@ -19,21 +19,6 @@ then
     exit 1
 fi
 
-# Check Ubuntu version
-echo "Checking server OS and version..."
-if [ "$OS" != 1 ]
-then
-    echo "Ubuntu Server is required to run this script."
-    echo "Please install that distro and try again."
-    exit 1
-fi
-
-
-if ! version 16.04 "$DISTRO" 16.04.4; then
-    echo "Ubuntu version $DISTRO must be between 16.04 - 16.04.4"
-    exit
-fi
-
 # Check if dir exists
 if [ ! -d $SCRIPTS ]
 then
@@ -41,11 +26,11 @@ then
 fi
 
 # Get packages to be able to install Redis
-apt update -q4 & spinner_loading
-sudo apt install -q -y \
+apt-get update -q4 & spinner_loading
+sudo apt-get install -q -y \
     build-essential \
     tcl8.5 \
-    php7.0-dev \
+    php-dev \
     php-pear
 
 # Install PHPmodule
@@ -67,7 +52,7 @@ service apache2 restart
 
 
 # Install Redis
-if ! apt -y install redis-server
+if ! apt-get -y install redis-server
 then
     echo "Installation failed."
     sleep 3
@@ -112,12 +97,12 @@ chown redis:root /etc/redis/redis.conf
 chmod 600 /etc/redis/redis.conf
 
 # Cleanup
-apt purge -y \
+apt-get purge -y \
     git \
     build-essential*
 
-apt update -q4 & spinner_loading
-apt autoremove -y
-apt autoclean
+apt-get update -q4 & spinner_loading
+apt-get autoremove -y
+apt-get autoclean
 
 exit

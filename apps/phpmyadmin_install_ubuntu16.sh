@@ -5,7 +5,7 @@
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
-. <(curl -sL https://raw.githubusercontent.com/nextcloud/vm/master/lib.sh)
+. <(curl -sL https://raw.githubusercontent.com/techandme/NextBerry/master/lib.sh)
 
 # Check for errors + debug code and abort if something isn't right
 # 1 = ON
@@ -35,11 +35,8 @@ echo "Checking server OS and version..."
 if [ "$OS" != 1 ]
 then
     echo "Ubuntu Server is required to run this script."
-<<<<<<< HEAD:static/phpmyadmin_install_ubuntu16.sh
-=======
     echo "Please install that distro and try again."
     sleep 3
->>>>>>> 5c7a89f58c97f1aa27134be10148df89a16d3fc8:apps/phpmyadmin_install_ubuntu16.sh
     exit 1
 fi
 
@@ -62,8 +59,8 @@ echo "phpmyadmin phpmyadmin/app-password-confirm password $PW_FILE" | debconf-se
 echo "phpmyadmin phpmyadmin/mysql/admin-pass password $PW_FILE" | debconf-set-selections
 echo "phpmyadmin phpmyadmin/mysql/app-pass password $PW_FILE" | debconf-set-selections
 echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2" | debconf-set-selections
-apt update -q4 & spinner_loading
-apt install -y -q \
+apt-get update -q4 & spinner_loading
+apt-get install -y -q \
     php-gettext \
     phpmyadmin
 
@@ -171,12 +168,7 @@ cat << CONFIG_CREATE >> "$CONFIG"
 ?>
 CONFIG_CREATE
 
-<<<<<<< HEAD:static/phpmyadmin_install_ubuntu16.sh
-service apache2 restart
-if [[ $? > 0 ]]
-=======
 if ! service apache2 restart
->>>>>>> 5c7a89f58c97f1aa27134be10148df89a16d3fc8:apps/phpmyadmin_install_ubuntu16.sh
 then
     echo "Apache2 could not restart..."
     echo "The script will exit."

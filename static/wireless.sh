@@ -1,12 +1,10 @@
 #!/bin/bash
-STATIC="https://raw.githubusercontent.com/techandme/NextBerry/master/static"
-SCRIPTS=/var/scripts
 IP=$(grep address /etc/network/interfaces)
 MASK=$(grep netmask /etc/network/interfaces)
 GW=$(grep gateway /etc/network/interfaces)
 clear
 
-whiptail --msgbox "Select your Wifi network -> right arrow -> select use static ip -> fill in:\n\n $IP \n\n $MASK\n\n $GW\n\n Enter the password -> make sure you check always connect -> press 'S'ave\n\n Back in the main screen select your network and press 'C'onnect\n\n If it says connect to "your-wifi" unplug the ethernet cable" 20 90
+whiptail --msgbox "Select your Wifi network -> right arrow -> select use static ip -> fill in:\n\n $IP \n\n $MASK\n\n $GW\n\n Enter the password -> make sure you check always connect -> press 'S'ave\n\n Back in the main screen select your network and press 'C'onnect\n\n If it says connect to 'your-wifi' unplug the ethernet cable" 20 90
 
 wicd-curses
 
