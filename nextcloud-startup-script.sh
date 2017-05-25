@@ -384,16 +384,16 @@ then
 fi
 
 # Enable UTF8mb4 (4-byte support)
-#NCDB=nextcloud_db
-#printf "\nEnabling UTF8mb4 support on $NCDB....\n"
-#echo "Please be patient, it may take a while."
-#sudo /etc/init.d/mysql restart & spinner_loading
-#RESULT="mysqlshow --user=root --password=$(cat "$PW_FILE") $NCDB| grep -v Wildcard | grep -o $NCDB"
-#if [ "$RESULT" == "$NCDB" ]; then
-#    check_command mysql -u root -e "ALTER DATABASE $NCDB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
-#    wait
-#fi
-#check_command sudo -u www-data $NCPATH/occ config:system:set mysql.utf8mb4 --type boolean --value="true"
+NCDB=nextcloud_db
+printf "\nEnabling UTF8mb4 support on $NCDB....\n"
+echo "Please be patient, it may take a while."
+sudo /etc/init.d/mysql restart & spinner_loading
+RESULT="mysqlshow --user=root --password=$(cat "$PW_FILE") $NCDB| grep -v Wildcard | grep -o $NCDB"
+if [ "$RESULT" == "$NCDB" ]; then
+    check_command mysql -u root -e "ALTER DATABASE $NCDB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
+    wait
+fi
+check_command sudo -u www-data $NCPATH/occ config:system:set mysql.utf8mb4 --type boolean --value="true"
 check_command sudo -u www-data $NCPATH/occ maintenance:repair
 
 # Install phpMyadmin
