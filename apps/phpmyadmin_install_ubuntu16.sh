@@ -5,7 +5,8 @@
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
-. <(curl -sL https://raw.githubusercontent.com/techandme/NextBerry/master/lib.sh)
+MYCNFPW=1 . <(curl -sL https://raw.githubusercontent.com/techandme/NextBerry/master/lib.sh)
+unset MYCNFPW
 
 # Check for errors + debug code and abort if something isn't right
 # 1 = ON
@@ -30,8 +31,6 @@ then
 fi
 
 # Check Ubuntu version
-echo
-echo "Checking server OS and version..."
 if [ "$OS" != 1 ]
 then
     echo "Ubuntu Server is required to run this script."
@@ -55,17 +54,14 @@ echo
 
 # Install phpmyadmin
 echo "phpmyadmin phpmyadmin/dbconfig-install boolean true" | debconf-set-selections
-echo "phpmyadmin phpmyadmin/app-password-confirm password $PW_FILE" | debconf-set-selections
-echo "phpmyadmin phpmyadmin/mysql/admin-pass password $PW_FILE" | debconf-set-selections
-echo "phpmyadmin phpmyadmin/mysql/app-pass password $PW_FILE" | debconf-set-selections
+echo "phpmyadmin phpmyadmin/app-password-confirm password $MYSQLMYCNFPASS" | debconf-set-selections
+echo "phpmyadmin phpmyadmin/mysql/admin-pass password $MYSQLMYCNFPASS" | debconf-set-selections
+echo "phpmyadmin phpmyadmin/mysql/app-pass password $MYSQLMYCNFPASS" | debconf-set-selections
 echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2" | debconf-set-selections
 apt-get update -q4 & spinner_loading
 apt-get install -y -q \
     php-gettext \
     phpmyadmin
-
-# Remove Password file
-rm /var/mysql_password.txt
 
 # Secure phpMyadmin
 if [ -f $PHPMYADMIN_CONF ]

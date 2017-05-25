@@ -2,9 +2,11 @@
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
-FIRST_IFACE=1 && CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/techandme/NextBerry/master/lib.sh)
+NCDB=1 && MYCNFPW=1 && FIRST_IFACE=1 && CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/techandme/NextBerry/master/lib.sh)
 unset FIRST_IFACE
 unset CHECK_CURRENT_REPO
+unset MYCNFPW
+unset NCDB
 
 # Tech and Me © - 2017, https://www.techandme.se/
 
@@ -114,23 +116,6 @@ else
     echo "passman failed"
     echo "Script failed to download. Please run: 'sudo bash $SCRIPTS/nextcloud-startup-script.sh' again."
     exit 1
-fi
-
-# Get previewgenerator script
-if [ -f "$SCRIPTS"/previewgenerator.sh ]
-then
-   rm "$SCRIPTS"/previewgenerator.sh
-   wget -q "$APP"/previewgenerator.sh -P "$SCRIPTS"
-else
-   wget -q "$APP"/previewgenerator.sh -P "$SCRIPTS"
-fi
-if [ -f "$SCRIPTS"/previewgenerator.sh ]
-then
-   sleep 0.1
-else
-   echo "previewgenerator failed"
-   echo "Script failed to download. Please run: 'sudo bash $SCRIPTS/previewgenerator.sh' again."
-   exit 1
 fi
 
 # Get nextant script
@@ -384,20 +369,16 @@ then
 fi
 
 # Enable UTF8mb4 (4-byte support)
-#NCDB=nextcloud_db
-#printf "\nEnabling UTF8mb4 support on $NCDB....\n"
+#printf "\nEnabling UTF8mb4 support on $NCCONFIGDB....\n"
 #echo "Please be patient, it may take a while."
 #sudo /etc/init.d/mysql restart & spinner_loading
-#RESULT="mysqlshow --user=root --password=$(cat "$PW_FILE") $NCDB| grep -v Wildcard | grep -o $NCDB"
-#if [ "$RESULT" == "$NCDB" ]; then
-#    check_command mysql -u root -e "ALTER DATABASE $NCDB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
+#RESULT="mysqlshow --user=root --password=$MYSQLMYCNFPASS $NCCONFIGDB| grep -v Wildcard | grep -o $NCCONFIGDB"
+#if [ "$RESULT" == "$NCCONFIGDB" ]; then
+#    check_command mysql -u root -e "ALTER DATABASE $NCCONFIGDB CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci;"
 #    wait
 #fi
 #check_command sudo -u www-data $NCPATH/occ config:system:set mysql.utf8mb4 --type boolean --value="true"
 check_command sudo -u www-data $NCPATH/occ maintenance:repair
-
-# Install phpMyadmin
-run_app_script phpmyadmin_install_ubuntu16
 clear
 
 cat << LETSENC
@@ -419,6 +400,7 @@ fi
 clear
 
 whiptail --title "Which apps do you want to install?" --checklist --separate-output "Automatically configure and install selected apps\nSelect by pressing the spacebar" "$WT_HEIGHT" "$WT_WIDTH" 4 \
+"phpMyadmin" "(MySQL GUI)       " OFF \
 "Collabora" "(Online editing)   " OFF \
 "Nextant" "(Full text search)   " OFF \
 "Passman" "(Password storage)   " OFF \
@@ -427,6 +409,9 @@ whiptail --title "Which apps do you want to install?" --checklist --separate-out
 while read -r -u 9 choice
 do
     case $choice in
+        phpMyadmin)
+            run_app_script phpmyadmin_install_ubuntu16
+        ;;
         Collabora)
             run_app_script collabora
         ;;
@@ -502,9 +487,9 @@ service apache2 reload
 VALUE="# php_value upload_max_filesize 513M"
 if ! grep -Fxq "$VALUE" $NCPATH/.htaccess
 then
-        sed -i 's/  php_value upload_max_filesize 513M/# php_value upload_max_filesize 513M/g' $NCPATH/.htaccess
-        sed -i 's/  php_value post_max_size 513M/# php_value post_max_size 513M/g' $NCPATH/.htaccess
-        sed -i 's/  php_value memory_limit 512M/# php_value memory_limit 512M/g' $NCPATH/.htaccess
+    sed -i 's/  php_value upload_max_filesize 513M/# php_value upload_max_filesize 511M/g' "$NCPATH"/.htaccess
+    sed -i 's/  php_value post_max_size 513M/# php_value post_max_size 511M/g' "$NCPATH"/.htaccess
+    sed -i 's/  php_value memory_limit 512M/# php_value memory_limit 512M/g' "$NCPATH"/.htaccess
 fi
 
 # Install latest updates
