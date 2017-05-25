@@ -78,7 +78,7 @@ Package: php*
 Pin: release a=jessie-backports
 Pin-Priority: 901
 
-Package: mysql-server-5.7
+Package: mysql-server-5.6
 Pin: release a=stretch
 Pin-Priority: 901
 PRIO
