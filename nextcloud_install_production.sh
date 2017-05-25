@@ -65,12 +65,22 @@ then
     exit 1
 fi
 
-# Package Pin-Priority
+# PHP7.0 & Package Pin-Priority
+echo "deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free" >> /etc/apt/sources.list
+echo "deb http://archive.raspbian.org/raspbian/ stretch main" >> /etc/apt/sources.list
+
 cat << PRIO > "/etc/apt/preferences"
 Package: *
-Pin: origin "mirrordirector.raspbian.org"
-Pin-Priority: 500
+Pin: release a=stable
+Pin-Priority: 900
 
+Package: php*
+Pin: release a=jessie-backports
+Pin-Priority: 901
+
+Package: mysql-server-5.7
+Pin: release a=stretch
+Pin-Priority: 901
 PRIO
 
 # Update and upgrade
@@ -80,7 +90,7 @@ apt-get update
 apt-get upgrade -y
 apt-get install -fy
 dpkg --configure --pending
-apt-get install -y htop git
+apt-get install -y htop git ntpdate
 
 # Enable apps to connect to RPI and read vcgencmd
 usermod -aG video $NCUSER
@@ -172,9 +182,9 @@ chmod 0600 $MYCNF
 chown root:root $MYCNF
 
 # Install MYSQL
-echo "mysql-server mysql-server/root_password password $MYSQL_PASS" | debconf-set-selections
-echo "mysql-server mysql-server/root_password_again password $MYSQL_PASS" | debconf-set-selections
-check_command apt-get install mysql-server -y
+echo "mysql-server-5.7 mysql-server/root_password password $MYSQL_PASS" | debconf-set-selections
+echo "mysql-server-5.7 mysql-server/root_password_again password $MYSQL_PASS" | debconf-set-selections
+check_command apt-get install mysql-server-5.7 -y
 
 # mysql_secure_installation
 apt-get -y install expect

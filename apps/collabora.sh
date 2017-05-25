@@ -175,7 +175,7 @@ then
     cat << HTTPS_CREATE > "$HTTPS_CONF"
 <VirtualHost *:443>
   ServerName $SUBDOMAIN:443
-  
+
   <Directory /var/www>
   Options -Indexes
   </Directory>
@@ -304,4 +304,3 @@ then
     crontab -u root -l | { cat; echo "@weekly $SCRIPTS/dockerprune.sh"; } | crontab -u root -
     any_key "Cronjob added! Press any key to continue... "
 fi
-
