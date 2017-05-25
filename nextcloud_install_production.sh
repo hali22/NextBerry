@@ -174,9 +174,12 @@ fi
 apt-get update -q4 & spinner_loading
 
 # Write MySQL pass to file and keep it safe
-echo "$MYSQL_PASS" > "$PW_FILE"
-chmod 600 "$PW_FILE"
-chown root:root "$PW_FILE"
+cat << LOGIN > "$MYCNF"
+[client]
+password='$MYSQL_PASS'
+LOGIN
+chmod 0600 $MYCNF
+chown root:root $MYCNF
 
 # Install MYSQL
 echo "mysql-server-5.7 mysql-server/root_password password $MYSQL_PASS" | debconf-set-selections
@@ -259,6 +262,9 @@ rm "$HTML/$STABLEVERSION.tar.bz2"
 download_static_script setup_secure_permissions_nextcloud
 bash "$SECURE" & spinner_loading
 
+# Create database nextcloud_db
+mysql -u root -p"$MYSQL_PASS" -e "CREATE DATABASE IF NOT EXISTS nextcloud_db;"
+
 # Install Nextcloud
 cd "$NCPATH"
 check_command sudo -u www-data php occ maintenance:install \
@@ -299,6 +305,23 @@ then
         sed -i 's/  php_value post_max_size 511M/# php_value post_max_size 511M/g' "$NCPATH"/.htaccess
         sed -i 's/  php_value memory_limit 512M/# php_value memory_limit 512M/g' "$NCPATH"/.htaccess
 fi
+
+# Enable OPCache for PHP
+# https://docs.nextcloud.com/server/12/admin_manual/configuration_server/server_tuning.html#enable-php-opcache
+phpenmod opcache
+{
+echo "# OPcache settings for Nextcloud"
+echo "opcache.enable=On"
+echo "opcache.enable_cli=1"
+echo "opcache.interned_strings_buffer=8"
+echo "opcache.max_accelerated_files=10000"
+echo "opcache.memory_consumption=128"
+echo "opcache.save_comments=1"
+echo "opcache.revalidate_freq=1"
+} >> /etc/php/7.0/apache2/php.ini
+
+# Install preview generator
+run_app_script previewgenerator
 
 # Generate $HTTP_CONF
 if [ ! -f $HTTP_CONF ]
@@ -468,6 +491,9 @@ echo "$CLEARBOOT"
 apt-get autoremove -y
 apt-get autoclean
 find /root "/home/$UNIXUSER" -type f \( -name '*.sh*' -o -name '*.html*' -o -name '*.tar*' -o -name '*.zip*' \) -delete
+
+# Install extra for UTF8 kernel module + Collabora
+apt-get install --install-recommends -y linux-image-extra-"$(uname -r)"
 
 # Set secure permissions final (./data/.htaccess has wrong permissions otherwise)
 bash "$SECURE" & spinner_loading

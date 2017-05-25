@@ -2,8 +2,10 @@
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
-NC_UPDATE=1 . <(curl -sL https://raw.githubusercontent.com/techandme/NextBerry/master/lib.sh)
+NCDB=1 && MYCNFPW=1 && NC_UPDATE=1 . <(curl -sL https://raw.githubusercontent.com/techandme/NextBerry/master/lib.sh)
 unset NC_UPDATE
+unset MYCNFPW
+unset NCDB
 
 # Tech and Me © - 2017, https://www.techandme.se/
 
@@ -26,8 +28,8 @@ then
 fi
 
 # System Upgrade
-apt update -q4 & spinner_loading
-export DEBIAN_FRONTEND=noninteractive ; apt dist-upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
+apt-get update -q4 & spinner_loading
+export DEBIAN_FRONTEND=noninteractive ; apt-get dist-upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
 
 # Update Redis PHP extention
 if type pecl > /dev/null 2>&1
@@ -35,7 +37,7 @@ then
     if [ "$(dpkg-query -W -f='${Status}' php7.0-dev 2>/dev/null | grep -c "ok installed")" == "0" ]
     then
         echo "Preparing to upgrade Redis Pecl extenstion..."
-        apt install php7.0-dev -y
+        apt-get install php7.0-dev -y
     fi
     echo "Trying to upgrade the Redis Pecl extenstion..."
     pecl upgrade redis
@@ -43,11 +45,8 @@ then
 fi
 
 # Cleanup un-used packages
-apt autoremove -y
-apt autoclean
-
-# Update GRUB, just in case
-update-grub
+apt-get autoremove -y
+apt-get autoclean
 
 # Remove update lists
 rm /var/lib/apt/lists/* -r
@@ -103,11 +102,44 @@ else
     echo "No need to upgrade, this script will exit..."
     exit 0
 fi
+
+# Make sure old instaces can upgrade as well
+if [ ! -f "$MYCNF" ] && [ -f /var/mysql_password.txt ]
+then
+    regressionpw=$(cat /var/mysql_password.txt)
+cat << LOGIN > "$MYCNF"
+[client]
+password='$regressionpw'
+LOGIN
+    chmod 0600 $MYCNF
+    chown root:root $MYCNF
+    echo "Please restart the upgrade process, we fixed the password file $MYCNF."
+    exit 1
+elif [ -z "$MYSQLMYCNFPASS" ] && [ -f /var/mysql_password.txt ]
+then
+    regressionpw=$(cat /var/mysql_password.txt)
+    {
+    echo "[client]"
+    echo "password='$regressionpw'"
+    } >> "$MYCNF"
+    echo "Please restart the upgrade process, we fixed the password file $MYCNF."
+    exit 1
+fi
+
+if [ -z "$MYSQLMYCNFPASS" ]
+then
+    echo "Something went wrong with copying your mysql password to $MYCNF."
+    echo "Please report this issue to $ISSUES, thanks!"
+    exit 1
+else
+    rm -f /var/mysql_password.txt
+fi
+
 echo "Backing up files and upgrading to Nextcloud $NCVERSION in 10 seconds..."
 echo "Press CTRL+C to abort."
 sleep 10
 
-# Backup data
+# Check if backup exists and move to old
 echo "Backing up data..."
 DATE=$(date +%Y-%m-%d-%H%M%S)
 if [ -d $BACKUP ]
@@ -118,6 +150,7 @@ then
     mkdir -p $BACKUP
 fi
 
+# Backup data
 for folders in config themes apps
 do
     rsync -Aax "$NCPATH/$folders" "$BACKUP"
@@ -135,6 +168,16 @@ then
     exit 1
 else
     printf "${Green}\nBackup OK!${Color_Off}\n"
+fi
+
+# Backup MySQL
+if mysql -u root -p"$MYSQLMYCNFPASS" -e "SHOW DATABASES LIKE '$NCCONFIGDB'" > /dev/null
+then
+    echo "Doing mysqldump of $NCCONFIGDB..."
+    check_command mysqldump -u root -p"$MYSQLMYCNFPASS" -d "$NCCONFIGDB" > "$BACKUP"/nextclouddb.sql
+else
+    echo "Doing mysqldump of all databases..."
+    check_command mysqldump -u root -p"$MYSQLMYCNFPASS" -d --all-databases > "$BACKUP"/alldatabases.sql
 fi
 
 # Download and validate Nextcloud package
@@ -167,7 +210,7 @@ fi
 if [ -d $BACKUP/themes/ ]
 then
     echo "$BACKUP/themes/ exists"
-    echo 
+    echo
     printf "${Green}All files are backed up.${Color_Off}\n"
     sudo -u www-data php "$NCPATH"/occ maintenance:mode --on
     echo "Removing old Nextcloud instance in 5 seconds..." && sleep 5
@@ -178,20 +221,20 @@ then
     cp -R $BACKUP/config "$NCPATH"/
     bash $SECURE & spinner_loading
     sudo -u www-data php "$NCPATH"/occ maintenance:mode --off
-    sudo -u www-data php "$NCPATH"/occ upgrade
+    sudo -u www-data php "$NCPATH"/occ upgrade --no-app-disable
 else
     echo "Something went wrong with backing up your old nextcloud instance, please check in $BACKUP if the folders exist."
     exit 1
 fi
+
+# Recover apps that exists in the backed up apps folder
+# run_static_script recover_apps
 
 # Enable Apps
 if [ -d "$SNAPDIR" ]
 then
     run_app_script spreedme
 fi
-
-# Recover apps that exists in the backed up apps folder
-run_static_script recover_apps
 
 # Change owner of $BACKUP folder to root
 chown -R root:root "$BACKUP"
@@ -204,7 +247,7 @@ then
     echo "Value correct"
 else
     sed -i 's/  php_value upload_max_filesize 511M/# php_value upload_max_filesize 511M/g' "$NCPATH"/.htaccess
-    sed -i 's/  php_value post_max_size 513M/# php_value post_max_size 511M/g' "$NCPATH"/.htaccess
+    sed -i 's/  php_value post_max_size 511M/# php_value post_max_size 511M/g' "$NCPATH"/.htaccess
     sed -i 's/  php_value memory_limit 512M/# php_value memory_limit 512M/g' "$NCPATH"/.htaccess
 fi
 
@@ -235,6 +278,9 @@ then
     echo "NEXTCLOUD UPDATE success-$(date +"%Y%m%d")" >> /var/log/cronjobs_success.log
     sudo -u www-data php "$NCPATH"/occ status
     sudo -u www-data php "$NCPATH"/occ maintenance:mode --off
+    echo
+    echo "If you notice that some apps are disabled it's due to that they are not compatible with the new Nextcloud version."
+    echo "To recover your old apps, please check $BACKUP/apps and copy them to $NCPATH/apps manually."
     echo
     echo "Thank you for using Tech and Me's updater!"
     ## Un-hash this if you want the system to reboot
