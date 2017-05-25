@@ -5,7 +5,8 @@
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
-. <(curl -sL https://raw.githubusercontent.com/techandme/NextBerry/master/lib.sh)
+PREVIEW_INSTALL=1 . <(curl -sL https://raw.githubusercontent.com/techandme/NextBerry/master/lib.sh)
+unset PREVIEW_INSTALL
 
 # Check for errors + debug code and abort if something isn't right
 # 1 = ON
@@ -13,14 +14,20 @@ true
 DEBUG=0
 debug_mode
 
-crontab -u www-data -l | { cat; echo "15  *  *  *  * php $NCPATH/occ preview:pre-generate"; } | crontab -u www-data -
+# Download and install Preview Generator
+if [ ! -d "$NCPATH"/apps/previewgenerator ]
+then
+    echo "Installing Preview Generator..."
+    wget -q "$PREVER_REPO/v$PREVER/$PREVER_FILE" -P "$NCPATH/apps"
+    tar -zxf "$NCPATH/apps/$PREVER_FILE" -C "$NCPATH/apps"
+    cd "$NCPATH/apps"
+    rm "$PREVER_FILE"
+fi
 
-# Download and install previewgenerator
-echo "Installing preview generator..."
-git clone "https://github.com/rullzer/previewgenerator.git" "$NCPATH/apps/previewgenerator"
-
-# Enable previewgenerator
+# Enable Preview Generator
 if [ -d "$NCPATH"/apps/previewgenerator ]
 then
     sudo -u www-data php "$NCPATH"/occ app:enable previewgenerator
+    crontab -u www-data -l | { cat; echo "15  *  *  *  * php -f $NCPATH/occ preview:pre-generate >> /var/log/previewgenerator.log"; } | crontab -u www-data -
+    sudo -u www-data php "$NCPATH"/occ preview:generate-all
 fi

@@ -175,7 +175,7 @@ then
     cat << HTTPS_CREATE > "$HTTPS_CONF"
 <VirtualHost *:443>
   ServerName $SUBDOMAIN:443
-  
+
   <Directory /var/www>
   Options -Indexes
   </Directory>
@@ -283,6 +283,7 @@ if [ -d "$NCPATH"/apps/richdocuments ]
 then
     check_command sudo -u www-data php "$NCPATH"/occ app:enable richdocuments
     check_command sudo -u www-data "$NCPATH"/occ config:app:set richdocuments wopi_url --value="https://$SUBDOMAIN"
+    chown -R www-data:www-data $NCPATH/apps
     echo
     echo "Collabora is now succesfylly installed."
     echo "You may have to reboot before Docker will load correctly."
@@ -303,4 +304,3 @@ then
     crontab -u root -l | { cat; echo "@weekly $SCRIPTS/dockerprune.sh"; } | crontab -u root -
     any_key "Cronjob added! Press any key to continue... "
 fi
-
