@@ -78,7 +78,7 @@ Package: php*
 Pin: release a=jessie-backports
 Pin-Priority: 901
 
-Package: mysql-server-5.7
+Package: mysql-server-5.6
 Pin: release a=stretch
 Pin-Priority: 901
 PRIO
@@ -182,9 +182,9 @@ chmod 0600 $MYCNF
 chown root:root $MYCNF
 
 # Install MYSQL
-echo "mysql-server-5.7 mysql-server/root_password password $MYSQL_PASS" | debconf-set-selections
-echo "mysql-server-5.7 mysql-server/root_password_again password $MYSQL_PASS" | debconf-set-selections
-check_command apt-get install mysql-server-5.7 -y
+echo "mysql-server-5.6 mysql-server/root_password password $MYSQL_PASS" | debconf-set-selections
+echo "mysql-server-5.6 mysql-server/root_password_again password $MYSQL_PASS" | debconf-set-selections
+check_command apt-get install mysql-server-5.6 -y
 
 # mysql_secure_installation
 apt-get -y install expect
