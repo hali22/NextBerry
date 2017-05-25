@@ -23,6 +23,7 @@ fi
 
 # Erase some dev tracks
 cat /dev/null > /var/log/syslog
+mkdir -p /var/scripts
 
 # Prefer IPv4
 sed -i "s|#precedence ::ffff:0:0/96  100|precedence ::ffff:0:0/96  100|g" /etc/gai.conf
@@ -36,7 +37,7 @@ clear
 echo
 echo "Current user with sudo permissions is: $UNIXUSER".
 echo "This script will set up everything with that user."
-run_static_script adduser
+echo
 
 # Check if key is available
 if ! wget -q -T 10 -t 2 "$NCREPO" > /dev/null
@@ -66,31 +67,19 @@ then
 fi
 
 # PHP7.0 & Package Pin-Priority
-echo "deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free" >> /etc/apt/sources.list
 echo "deb http://archive.raspbian.org/raspbian/ stretch main" >> /etc/apt/sources.list
-
-cat << PRIO > "/etc/apt/preferences"
-Package: *
-Pin: release a=stable
-Pin-Priority: 900
-
-Package: php*
-Pin: release a=jessie-backports
-Pin-Priority: 901
-
-Package: mysql-server-5.6
-Pin: release a=stretch
-Pin-Priority: 901
-PRIO
+echo "deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free" >> /etc/apt/sources.list
+gpg --keyserver pgpkeys.mit.edu --recv-key CCD91D6111A06851
+apt igpg --armor --export CCD91D6111A06851 | apt-key add -
 
 # Update and upgrade
 apt-get autoclean
 apt-get	autoremove -y
-apt-get update
+apt-get update -q4 & spinner_loading
 apt-get upgrade -y
 apt-get install -fy
 dpkg --configure --pending
-apt-get install -y htop git ntpdate
+apt-get install -y htop git ntpdate figlet
 
 # Enable apps to connect to RPI and read vcgencmd
 usermod -aG video $NCUSER
@@ -110,11 +99,13 @@ sed -i 's|#CONF_MAXSWAP=2048|CONF_MAXSWAP=2048|g' /etc/dphys-swapfile
 /etc/init.d/dphys-swapfile stop
 /etc/init.d/dphys-swapfile start
 /etc/init.d/dphys-swapfile swapon
-fi
-
+echo "vm.swappiness = 10" >> /etc/sysctl.conf
+sysctl -p
+else
 # Only use swap to prevent out of memory. Speed and less tear on SD
 echo "vm.swappiness = 0" >> /etc/sysctl.conf
 sysctl -p
+fi
 
 # Setup firewall-rules
 wget -q "$STATIC/firewall-rules" -P /usr/sbin/
@@ -170,9 +161,6 @@ else
     clear
 fi
 
-# Update system
-apt-get update -q4 & spinner_loading
-
 # Write MySQL pass to file and keep it safe
 cat << LOGIN > "$MYCNF"
 [client]
@@ -221,25 +209,25 @@ a2enmod rewrite \
         setenvif
 a2dissite 000-default.conf
 
-# Install PHP7.0
+# Install php7.07.0
 check_command apt-get install -y \
-    libapache2-mod-php \
-    php-common \
-    php-mysql \
-    php-intl \
-    php-mcrypt \
-    php-ldap \
-    php-imap \
-    php-cli \
-    php-gd \
-    php-pgsql \
-    php-json \
-    php-sqlite3 \
-    php-curl \
-    php-xml \
-    php-zip \
-    php-mbstring
-check_command apt-get install -t jessie-backports php-smbclient -y
+    libapache2-mod-php7.0 \
+    php7.0-common \
+    php7.0-mysql \
+    php7.0-intl \
+    php7.0-mcrypt \
+    php7.0-ldap \
+    php7.0-imap \
+    php7.0-cli \
+    php7.0-gd \
+    php7.0-pgsql \
+    php7.0-json \
+    php7.0-sqlite3 \
+    php7.0-curl \
+    php7.0-xml \
+    php7.0-zip \
+    php7.0-mbstring
+check_command apt-get install php-smbclient -y
 
 # Enable SMB client
  echo '# This enables php-smbclient' >> /etc/php/7.0/apache2/php.ini

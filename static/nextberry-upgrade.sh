@@ -86,7 +86,7 @@ else
 fi
 
 # New wifi setup
-sudo usermod -a -G netdev ncadmin
+sudo usermod -aG netdev ncadmin
 DEBIAN_FRONTEND=noninteractive apt-get install -y wicd-curses
 
 if [ -f $SCRIPTS/wireless.sh ] ;then
