@@ -77,34 +77,34 @@ Pin-Priority: 900
 PRIO
 
 # Update and upgrade
-printf "${Cyan}Performing autoclean...${Color_Off}\n"
+printf "${Cyan}Performing autoclean...${Color_Off}\n\n"
 apt-get autoclean -q4 & spinner_loading
-printf "Done...\n"
+printf "Done...\n\n"
 echo
-printf "${Cyan}Performing autoremove...${Color_Off}\n"
+printf "${Cyan}Performing autoremove...${Color_Off}\n\n"
 apt-get	autoremove -y -q4 & spinner_loading
-printf "Done...\n"
+printf "Done...\n\n"
 echo
-printf "${Cyan}Updating system...${Color_Off}\n"
+printf "${Cyan}Updating system...${Color_Off}\n\n"
 apt-get update -q4 & spinner_loading
-printf "Done...\n"
+printf "Done...\n\n"
 echo
-printf "${Cyan}Upgrading system...${Color_Off}\n"
+printf "${Cyan}Upgrading system...${Color_Off}\n\n"
 apt-get upgrade -y -q4 & spinner_loading
 apt-get dist-upgrade -y -q4 & spinner_loading
-printf "Done...\n"
+printf "Done...\n\n"
 echo
-printf "${Cyan}Installing missing packages...${Color_Off}\n"
+printf "${Cyan}Installing missing packages...${Color_Off}\n\n"
 apt-get install -fy -q4 & spinner_loading
-printf "Done...\n"
+printf "Done...\n\n"
 echo
-printf "${Cyan}Performing: dpkg configure${Color_Off}\n"
+printf "${Cyan}Performing: dpkg configure${Color_Off}\n\n"
 dpkg --configure --pending
-printf "Done...\n"
+printf "Done...\n\n"
 echo
-printf "${Cyan}Installing additional packages...${Color_Off}\n"
+printf "${Cyan}Installing additional packages...${Color_Off}\n\n"
 apt-get install -y htop git ntpdate figlet ufw dnsutils
-printf "Done...\n"
+printf "Done...\n\n"
 
 # Fix Perl issues
 #sed -i 's|${([^}]+)}/$ENV{|$\{([^}]+)}/$ENV\{|g' /usr/share/perl5/Debconf/Config.pm
