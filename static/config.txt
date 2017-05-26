@@ -749,7 +749,7 @@ temp_limit=85
 [pi2]
 arm_freq=1100
 [pi3]
-arm_freq=1450
+arm_freq=1400
 [all]
 
 ## arm_freq_min
