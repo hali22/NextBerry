@@ -30,6 +30,7 @@ iface $IFACE inet static
 address $ADDRESS
 netmask $NETMASK
 gateway $GATEWAY
+dns-nameservers 8.8.8.8 8.8.4.4
 
 # This is an autoconfigured IPv6 interface
 # iface $IFACE inet6 auto
