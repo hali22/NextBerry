@@ -23,7 +23,6 @@ fi
 
 # Erase some dev tracks
 cat /dev/null > /var/log/syslog
-mkdir -p /var/scripts
 
 # Prefer IPv4
 sed -i "s|#precedence ::ffff:0:0/96  100|precedence ::ffff:0:0/96  100|g" /etc/gai.conf
@@ -69,8 +68,8 @@ fi
 # PHP7.0 & Package Pin-Priority
 echo "deb http://archive.raspbian.org/raspbian/ stretch main" >> /etc/apt/sources.list
 echo "deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free" >> /etc/apt/sources.list
-gpg --keyserver pgpkeys.mit.edu --recv-key CCD91D6111A06851
-apt igpg --armor --export CCD91D6111A06851 | apt-key add -
+gpg --keyserver pgpkeys.mit.edu --recv-key CCD91D6111A06851 gpg --armor --export CCD91D6111A06851 | apt-key add -
+
 
 # Update and upgrade
 apt-get autoclean
@@ -79,7 +78,7 @@ apt-get update -q4 & spinner_loading
 apt-get upgrade -y
 apt-get install -fy
 dpkg --configure --pending
-apt-get install -y htop git ntpdate figlet
+apt-get install -y htop git ntpdate figlet ufw dnsutils 
 
 # Enable apps to connect to RPI and read vcgencmd
 usermod -aG video $NCUSER
