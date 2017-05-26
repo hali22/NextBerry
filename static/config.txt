@@ -516,7 +516,7 @@
 ##
 ##     Default 64
 ##
-gpu_mem=16
+gpu_mem=32
 
 ## gpu_mem_256
 ##     GPU memory allocation in MB for 256MB board revision.
@@ -747,9 +747,9 @@ temp_limit=85
 ##     Default 700.
 ##
 [pi2]
-arm_freq=1000
+arm_freq=1100
 [pi3]
-arm_freq=1200
+arm_freq=1450
 [all]
 
 ## arm_freq_min
