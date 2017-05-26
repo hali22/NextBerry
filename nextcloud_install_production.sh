@@ -72,7 +72,7 @@ echo "deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib n
 
 cat << PRIO > "/etc/apt/preferences"
 Package: *
-Pin: release a=stable
+Pin: release a=jessie
 Pin-Priority: 900
 PRIO
 
@@ -107,8 +107,8 @@ apt-get install -y htop git ntpdate figlet ufw dnsutils
 printf "Done...\n"
 
 # Fix Perl issues
-sed -i 's|${([^}]+)}/$ENV{|$\{([^}]+)}/$ENV\{|g' /usr/share/perl5/Debconf/Config.pm
-sed -i 's|${([^{}|$\{([^\{}|g' /usr/share/perl5/Debconf/Question.pm
+#sed -i 's|${([^}]+)}/$ENV{|$\{([^}]+)}/$ENV\{|g' /usr/share/perl5/Debconf/Config.pm
+#sed -i 's|${([^{}|$\{([^\{}|g' /usr/share/perl5/Debconf/Question.pm
 
 # Enable apps to connect to RPI and read vcgencmd
 usermod -aG video $NCUSER
