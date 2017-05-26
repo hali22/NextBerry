@@ -77,33 +77,38 @@ Pin-Priority: 900
 PRIO
 
 # Update and upgrade
-printf "Performing autoclean..."
+printf "${Cyan}Performing autoclean...${Color_Off}\n"
 apt-get autoclean -q4 & spinner_loading
-printf "Done..."
+printf "Done...\n"
 echo
-printf "Performing autoremove..."
+printf "${Cyan}Performing autoremove...${Color_Off}\n"
 apt-get	autoremove -y -q4 & spinner_loading
-printf "Done..."
+printf "Done...\n"
 echo
-printf "Updating system..."
+printf "${Cyan}Updating system...${Color_Off}\n"
 apt-get update -q4 & spinner_loading
-printf "Done..."
+printf "Done...\n"
 echo
-printf "Upgrading system..."
+printf "${Cyan}Upgrading system...${Color_Off}\n"
 apt-get upgrade -y -q4 & spinner_loading
-printf "Done..."
+apt-get dist-upgrade -y -q4 & spinner_loading
+printf "Done...\n"
 echo
-printf "Installing missing packages..."
+printf "${Cyan}Installing missing packages...${Color_Off}\n"
 apt-get install -fy -q4 & spinner_loading
-printf "Done..."
+printf "Done...\n"
 echo
-printf "Performing: dpkg configure"
+printf "${Cyan}Performing: dpkg configure${Color_Off}\n"
 dpkg --configure --pending
-printf "Done..."
+printf "Done...\n"
 echo
-printf "Installing additional packages..."
-apt-get install -y htop git ntpdate figlet ufw dnsutils -q4 & spinner_loading
-printf "Done..."
+printf "${Cyan}Installing additional packages...${Color_Off}\n"
+apt-get install -y htop git ntpdate figlet ufw dnsutils
+printf "Done...\n"
+
+# Fix Perl issues
+sed -i 's|${([^}]+)}/$ENV{|$\{([^}]+)}/$ENV\{|g' /usr/share/perl5/Debconf/Config.pm
+sed -i 's|${([^{}|$\{([^\{}|g' /usr/share/perl5/Debconf/Question.pm
 
 # Enable apps to connect to RPI and read vcgencmd
 usermod -aG video $NCUSER
@@ -486,10 +491,6 @@ check_command run_static_script change-root-profile
 
 # Install Redis
 run_static_script redis-server-ubuntu16
-
-# Upgrade
-apt-get update -q4 & spinner_loading
-apt-get dist-upgrade -y
 
 # Remove LXD (always shows up as failed during boot)
 apt-get purge lxd -y
