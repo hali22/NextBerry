@@ -68,8 +68,12 @@ fi
 # PHP7.0 & Package Pin-Priority
 echo "deb http://archive.raspbian.org/raspbian/ stretch main" >> /etc/apt/sources.list
 echo "deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free" >> /etc/apt/sources.list
-gpg --keyserver pgpkeys.mit.edu --recv-key CCD91D6111A06851 gpg --armor --export CCD91D6111A06851 | apt-key add -
 
+cat << PRIO > "/etc/apt/preferences"
+Package: *
+Pin: release a=stable
+Pin-Priority: 900
+PRIO
 
 # Update and upgrade
 apt-get autoclean
@@ -78,7 +82,7 @@ apt-get update -q4 & spinner_loading
 apt-get upgrade -y
 apt-get install -fy
 dpkg --configure --pending
-apt-get install -y htop git ntpdate figlet ufw dnsutils 
+apt-get install -y htop git ntpdate figlet ufw dnsutils
 
 # Enable apps to connect to RPI and read vcgencmd
 usermod -aG video $NCUSER
@@ -171,7 +175,7 @@ chown root:root $MYCNF
 # Install MYSQL
 echo "mysql-server-5.6 mysql-server/root_password password $MYSQL_PASS" | debconf-set-selections
 echo "mysql-server-5.6 mysql-server/root_password_again password $MYSQL_PASS" | debconf-set-selections
-check_command apt-get install mysql-server-5.6 -y
+check_command apt-get -t stretch install mysql-server-5.6 -y
 
 # mysql_secure_installation
 apt-get -y install expect
@@ -209,7 +213,7 @@ a2enmod rewrite \
 a2dissite 000-default.conf
 
 # Install php7.07.0
-check_command apt-get install -y \
+check_command apt-get -t jessie-backports install -y \
     libapache2-mod-php7.0 \
     php7.0-common \
     php7.0-mysql \
@@ -226,7 +230,7 @@ check_command apt-get install -y \
     php7.0-xml \
     php7.0-zip \
     php7.0-mbstring
-check_command apt-get install php-smbclient -y
+check_command apt-get -t jessie-backports install php-smbclient -y
 
 # Enable SMB client
  echo '# This enables php-smbclient' >> /etc/php/7.0/apache2/php.ini
