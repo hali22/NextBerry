@@ -67,13 +67,17 @@ then
 fi
 
 # PHP7.0 & Package Pin-Priority
-echo "deb http://archive.raspbian.org/raspbian/ stretch main" >> /etc/apt/sources.list
+#echo "deb http://archive.raspbian.org/raspbian/ stretch main" >> /etc/apt/sources.list
 echo "deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free" >> /etc/apt/sources.list
 
 cat << PRIO > "/etc/apt/preferences"
 Package: *
 Pin: release a=jessie
 Pin-Priority: 900
+
+Package: php*
+Pin: release a=jessie-backports
+Pin-Priority: 901
 PRIO
 
 # Update and upgrade
@@ -155,8 +159,8 @@ then
     apt-get install resolvconf -y -q
     dpkg-reconfigure resolvconf
 fi
-echo "nameserver 8.8.8.8" > /etc/resolvconf/resolv.conf.d/base
-echo "nameserver 8.8.4.4" >> /etc/resolvconf/resolv.conf.d/base
+echo "nameserver 8.8.8.8" > /etc/resolv.conf.head
+echo "nameserver 8.8.4.4" >> /etc/resolv.conf.head
 
 # Check network
 if ! [ -x "$(command -v nslookup)" ]
@@ -199,9 +203,10 @@ chmod 0600 $MYCNF
 chown root:root $MYCNF
 
 # Install MYSQL
-echo "mysql-server-5.6 mysql-server/root_password password $MYSQL_PASS" | debconf-set-selections
-echo "mysql-server-5.6 mysql-server/root_password_again password $MYSQL_PASS" | debconf-set-selections
-check_command apt-get -t stretch install mysql-server-5.6 -y
+echo "mysql-server mysql-server/root_password password $MYSQL_PASS" | debconf-set-selections
+echo "mysql-server mysql-server/root_password_again password $MYSQL_PASS" | debconf-set-selections
+check_command apt-get install mysql-server -y
+#check_command apt-get -t stretch install mysql-server-5.6 -y
 
 # mysql_secure_installation
 apt-get -y install expect
@@ -238,24 +243,24 @@ a2enmod rewrite \
         setenvif
 a2dissite 000-default.conf
 
-# Install php7.07.0
-check_command apt-get -t jessie-backports install -y \
-    libapache2-mod-php7.0 \
-    php7.0-common \
-    php7.0-mysql \
-    php7.0-intl \
-    php7.0-mcrypt \
-    php7.0-ldap \
-    php7.0-imap \
-    php7.0-cli \
-    php7.0-gd \
-    php7.0-pgsql \
-    php7.0-json \
-    php7.0-sqlite3 \
-    php7.0-curl \
-    php7.0-xml \
-    php7.0-zip \
-    php7.0-mbstring
+# Install php7.0
+check_command apt-get install -y \
+    libapache2-mod-php \
+    php-common \
+    php-mysql \
+    php-intl \
+    php-mcrypt \
+    php-ldap \
+    php-imap \
+    php-cli \
+    php-gd \
+    php-pgsql \
+    php-json \
+    php-sqlite3 \
+    php-curl \
+    php-xml \
+    php-zip \
+    php-mbstring
 check_command apt-get -t jessie-backports install php-smbclient -y
 
 # Enable SMB client
