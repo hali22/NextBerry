@@ -47,6 +47,7 @@ fi
 
 # Check if it's a clean server
 echo "Checking if it's a clean server..."
+echo
 if [ "$(dpkg-query -W -f='${Status}' mysql-common 2>/dev/null | grep -c "ok installed")" == "1" ]
 then
     echo "MySQL is installed, it must be a clean server."
@@ -76,13 +77,33 @@ Pin-Priority: 900
 PRIO
 
 # Update and upgrade
-apt-get autoclean
-apt-get	autoremove -y
+printf "Performing autoclean..."
+apt-get autoclean -q4 & spinner_loading
+printf "Done..."
+echo
+printf "Performing autoremove..."
+apt-get	autoremove -y -q4 & spinner_loading
+printf "Done..."
+echo
+printf "Updating system..."
 apt-get update -q4 & spinner_loading
-apt-get upgrade -y
-apt-get install -fy
+printf "Done..."
+echo
+printf "Upgrading system..."
+apt-get upgrade -y -q4 & spinner_loading
+printf "Done..."
+echo
+printf "Installing missing packages..."
+apt-get install -fy -q4 & spinner_loading
+printf "Done..."
+echo
+printf "Performing: dpkg configure"
 dpkg --configure --pending
-apt-get install -y htop git ntpdate figlet ufw dnsutils
+printf "Done..."
+echo
+printf "Installing additional packages..."
+apt-get install -y htop git ntpdate figlet ufw dnsutils -q4 & spinner_loading
+printf "Done..."
 
 # Enable apps to connect to RPI and read vcgencmd
 usermod -aG video $NCUSER
