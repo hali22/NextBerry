@@ -206,8 +206,9 @@ chown root:root $MYCNF
 # Install MYSQL
 echo "mysql-server mysql-server/root_password password $MYSQL_PASS" | debconf-set-selections
 echo "mysql-server mysql-server/root_password_again password $MYSQL_PASS" | debconf-set-selections
-#check_command "$APT" install mysql-server -y
-check_command "$APT" -t stretch install mysql-server-5.6 -y
+check_command "$APT" install mysql-server -y
+# 5.6 error: unescaped left brace inregex is deprecated, passed through in regex....
+#check_command "$APT" -t stretch install mysql-server-5.6 -y
 
 # mysql_secure_installation
 aptitude -y install expect
