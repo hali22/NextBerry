@@ -95,6 +95,7 @@ printf "Done...\n\n"
 echo
 printf "${Cyan}Installing additional packages...${Color_Off}\n\n"
 apt-get install -y htop git ntpdate figlet ufw dnsutils
+#libgd3 libwebp5 libc-client2007e libmcrypt4 libpg5 libxslt1.1
 printf "Done...\n\n"
 
 # Fix Perl issues
@@ -231,7 +232,7 @@ a2enmod rewrite \
 a2dissite 000-default.conf
 
 # PHP7.0
-sed -i 's|deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi|#deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi|g' /etc/apt/sources.list
+#sed -i 's|deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi|#deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi|g' /etc/apt/sources.list
 #echo "deb http://archive.raspbian.org/raspbian/ stretch main" >> /etc/apt/sources.list
 echo "deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free" >> /etc/apt/sources.list
 
@@ -242,7 +243,7 @@ printf "Done...\n\n"
 echo
 
 # Install php7.0
-check_command apt-get install -y \
+check_command apt-get install -t jessie-backports -y \
     libapache2-mod-php7.0 \
     php7.0-common \
     php7.0-mysql \
@@ -259,9 +260,9 @@ check_command apt-get install -y \
     php7.0-xml \
     php7.0-zip \
     php7.0-mbstring
-    check_command apt-get install -y php-smbclient -y
+    check_command apt-get install -t jessie-backports -y php-smbclient -y
 
-sed -i 's|#deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi|deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi|g' /etc/apt/sources.list
+#sed -i 's|#deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi|deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi|g' /etc/apt/sources.list
 sed -i 's|deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free|#deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free|g' /etc/apt/sources.list
 
 echo
