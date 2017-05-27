@@ -66,27 +66,32 @@ then
     exit 1
 fi
 
+# PHP7.0
+#sed -i 's|deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi|#deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi|g' /etc/apt/sources.list
+#echo "deb http://archive.raspbian.org/raspbian/ stretch main" >> /etc/apt/sources.list
+sed -i 's|deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free|#deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free|g' /etc/apt/sources.list
+
 # Update and upgrade
 clear
 printf "${Cyan}Performing autoclean...${Color_Off}\n\n"
-apt-get autoclean -q4 & spinner_loading
+aptitude autoclean -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Performing autoremove...${Color_Off}\n\n"
-apt-get	autoremove -y -q4 & spinner_loading
+aptitude	autoremove -y -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Updating system...${Color_Off}\n\n"
-apt-get update -q4 & spinner_loading
+aptitude update -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Upgrading system...${Color_Off}\n\n"
-apt-get upgrade -y -q4 & spinner_loading
-apt-get dist-upgrade -y -q4 & spinner_loading
+aptitude full-upgrade -y -q4 & spinner_loading
+#aptitude dist-upgrade -y -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Installing missing packages...${Color_Off}\n\n"
-apt-get install -fy -q4 & spinner_loading
+aptitude install -fy -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Performing: dpkg configure${Color_Off}\n\n"
@@ -94,7 +99,7 @@ dpkg --configure --pending
 printf "Done...\n\n"
 echo
 printf "${Cyan}Installing additional packages...${Color_Off}\n\n"
-apt-get install -y htop git ntpdate figlet ufw dnsutils
+aptitude install -y htop git ntpdate figlet ufw dnsutils
 #libgd3 libwebp5 libc-client2007e libmcrypt4 libpg5 libxslt1.1
 printf "Done...\n\n"
 
@@ -144,7 +149,7 @@ echo "$NEXTBERRYVERSIONCLEAN" >> "$SCRIPTS"/.version-nc
 # Change DNS
 if ! [ -x "$(command -v resolvconf)" ]
 then
-    apt-get install resolvconf -y -q
+    aptitude install resolvconf -y -q
     dpkg-reconfigure resolvconf
 fi
 echo "nameserver 8.8.8.8" > /etc/resolv.conf.head
@@ -153,11 +158,11 @@ echo "nameserver 8.8.4.4" >> /etc/resolv.conf.head
 # Check network
 if ! [ -x "$(command -v nslookup)" ]
 then
-    apt-get install dnsutils -y -q
+    aptitude install dnsutils -y -q
 fi
 if ! [ -x "$(command -v ifup)" ]
 then
-    apt-get install ifupdown -y -q
+    aptitude install ifupdown -y -q
 fi
 sudo ifdown "$IFACE" && sudo ifup "$IFACE"
 if ! nslookup google.com
@@ -167,7 +172,7 @@ then
 fi
 
 # Set locales
-#apt-get install language-pack-en-base -y
+#aptitude install language-pack-en-base -y
 sudo locale-gen "en_US.UTF-8" && sudo dpkg-reconfigure --frontend=noninteractive locales
 
 # Set keyboard layout
@@ -193,11 +198,11 @@ chown root:root $MYCNF
 # Install MYSQL
 echo "mysql-server mysql-server/root_password password $MYSQL_PASS" | debconf-set-selections
 echo "mysql-server mysql-server/root_password_again password $MYSQL_PASS" | debconf-set-selections
-check_command apt-get install mysql-server -y
-#check_command apt-get -t stretch install mysql-server-5.6 -y
+check_command aptitude install mysql-server -y
+#check_command aptitude -t stretch install mysql-server-5.6 -y
 
 # mysql_secure_installation
-apt-get -y install expect
+aptitude -y install expect
 SECURE_MYSQL=$(expect -c "
 set timeout 10
 spawn mysql_secure_installation
@@ -218,10 +223,10 @@ send \"y\r\"
 expect eof
 ")
 echo "$SECURE_MYSQL"
-apt-get -y purge expect
+aptitude -y purge expect
 
 # Install Apache
-check_command apt-get install apache2 -y
+check_command aptitude install apache2 -y
 a2enmod rewrite \
         headers \
         env \
@@ -230,46 +235,6 @@ a2enmod rewrite \
         ssl \
         setenvif
 a2dissite 000-default.conf
-
-# PHP7.0
-#sed -i 's|deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi|#deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi|g' /etc/apt/sources.list
-#echo "deb http://archive.raspbian.org/raspbian/ stretch main" >> /etc/apt/sources.list
-echo "deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free" >> /etc/apt/sources.list
-
-echo
-printf "${Cyan}Updating system...${Color_Off}\n\n"
-apt-get update -q4 & spinner_loading
-printf "Done...\n\n"
-echo
-
-# Install php7.0
-check_command apt-get install -t jessie-backports -y \
-    libapache2-mod-php7.0 \
-    php7.0-common \
-    php7.0-mysql \
-    php7.0-intl \
-    php7.0-mcrypt \
-    php7.0-ldap \
-    php7.0-imap \
-    php7.0-cli \
-    php7.0-gd \
-    php7.0-pgsql \
-    php7.0-json \
-    php7.0-sqlite3 \
-    php7.0-curl \
-    php7.0-xml \
-    php7.0-zip \
-    php7.0-mbstring
-    check_command apt-get install -t jessie-backports -y php-smbclient -y
-
-#sed -i 's|#deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi|deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi|g' /etc/apt/sources.list
-sed -i 's|deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free|#deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free|g' /etc/apt/sources.list
-
-echo
-printf "${Cyan}Updating system...${Color_Off}\n\n"
-apt-get update -q4 & spinner_loading
-printf "Done...\n\n"
-echo
 
 # Enable SMB client
  echo '# This enables php-smbclient' >> /etc/php/7.0/apache2/php.ini
@@ -458,7 +423,7 @@ sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtpname --value="www.
 sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtppassword --value="vinr vhpa jvbh hovy"
 
 # Install Libreoffice Writer to be able to read MS documents.
-sudo apt-get install --no-install-recommends libreoffice-writer -y
+sudo aptitude install --no-install-recommends libreoffice-writer -y
 sudo -u www-data php "$NCPATH"/occ config:system:set preview_libreoffice_path --value="/usr/bin/libreoffice"
 
 
@@ -506,7 +471,7 @@ check_command run_static_script change-root-profile
 run_static_script redis-server-ubuntu16
 
 # Remove LXD (always shows up as failed during boot)
-apt-get purge lxd -y
+aptitude purge lxd -y
 
 # Cleanup login screen
 cat /dev/null > /etc/motd
@@ -514,12 +479,12 @@ cat /dev/null > /etc/motd
 # Cleanup
 CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e ''"$(uname -r | cut -f1,2 -d"-")"'' | grep -e '[0-9]' | xargs sudo apt-get -y purge)
 echo "$CLEARBOOT"
-apt-get autoremove -y
-apt-get autoclean
+aptitude autoremove -y
+aptitude autoclean
 find /root "/home/$UNIXUSER" -type f \( -name '*.sh*' -o -name '*.html*' -o -name '*.tar*' -o -name '*.zip*' \) -delete
 
 # Install extra for UTF8 kernel module + Collabora
-apt-get install --install-recommends -y linux-image-extra-"$(uname -r)"
+aptitude install --install-recommends -y linux-image-extra-"$(uname -r)"
 
 # Set secure permissions final (./data/.htaccess has wrong permissions otherwise)
 bash "$SECURE" & spinner_loading

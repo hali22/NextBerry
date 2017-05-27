@@ -64,7 +64,7 @@ else
   while read -r line; do
       i=$(( i + 1 ))
       echo $i
-  done < <(apt-get update; apt-get install whiptail -y)
+  done < <(aptitude update; aptitude install whiptail -y)
 } | whiptail --title "Progress" --gauge "Please wait while installing Whiptail..." 6 60 0
 
 fi
@@ -543,8 +543,8 @@ clear
 ADDRESS2=$(grep "address" /etc/network/interfaces | awk '$1 == "address" { print $2 }')
 
 # Cleanup 2
-apt-get autoremove -y
-apt-get autoclean
+aptitude autoremove -y
+aptitude autoclean
 CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e "$(uname -r | cut -f1,2 -d"-")" | grep -e "[0-9]" | xargs sudo apt-get -y purge)
 echo "$CLEARBOOT"
 
@@ -570,36 +570,37 @@ clear
 
 # Repo issue
 sed -i 's|#deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free|deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free|g' /etc/apt/sources.list
+
 cat << PRIO > "/etc/apt/preferences"
 Package: *
 Pin: release a=jessie
 Pin-Priority: 900
 
-Package: php
+Package: *
 Pin: release a=jessie-backports
-Pin-Priority: 901
+Pin-Priority: 50
 PRIO
 
 # Update and upgrade
 printf "${Cyan}Performing autoclean...${Color_Off}\n\n"
-apt-get autoclean -q4 & spinner_loading
+aptitude autoclean -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Performing autoremove...${Color_Off}\n\n"
-apt-get	autoremove -y -q4 & spinner_loading
+aptitude autoremove -y -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Updating system...${Color_Off}\n\n"
-apt-get update -q4 & spinner_loading
+aptitude update -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Upgrading system...${Color_Off}\n\n"
-apt-get upgrade -y -q4 & spinner_loading
-apt-get dist-upgrade -y -q4 & spinner_loading
+aptitude full-upgrade -y -q4 & spinner_loading
+#aptitude dist-upgrade -y -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Installing missing packages...${Color_Off}\n\n"
-apt-get install -fy -q4 & spinner_loading
+aptitude install -fy -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Performing: dpkg configure${Color_Off}\n\n"
