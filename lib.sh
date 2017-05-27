@@ -254,7 +254,7 @@ run_static_script() {
     rm -f "${SCRIPTS}/${1}.sh" "${SCRIPTS}/${1}.php" "${SCRIPTS}/${1}.py"
     if wget -q "${STATIC}/${1}.sh" -P "$SCRIPTS"
     then
-        bash "${SCRIPTS}/${1}.sh >> $SCRIPTS"
+        bash "${SCRIPTS}/${1}.sh"
         rm -f "${SCRIPTS}/${1}.sh"
     elif wget -q "${STATIC}/${1}.php" -P "$SCRIPTS"
     then
