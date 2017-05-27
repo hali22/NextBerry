@@ -24,6 +24,7 @@ IFACE2=$(ip -o link show | awk '{print $2,$9}' | grep 'UP' | cut -d ':' -f 1)
 [ ! -z "$CHECK_CURRENT_REPO" ] && REPO=$(apt-get update | grep -m 1 Hit | awk '{ print $2}')
 ADDRESS=$(hostname -I | cut -d ' ' -f 1)
 WGET="/usr/bin/wget"
+APT="apt-get"
 # WANIP4=$(dig +short myip.opendns.com @resolver1.opendns.com) # as an alternative
 WANIP4=$(curl -s -m 5 ipinfo.io/ip)
 [ ! -z "$LOAD_IP6" ] && WANIP6=$(curl -s -k -m 7 https://6.ifcfg.me)
@@ -51,8 +52,8 @@ ISSUES="https://github.com/techandme/NextBerry/issues"
 NCPASS=nextcloud
 NCUSER=ncadmin
 UNIXUSER=$SUDO_USER
-UNIXUSER_PROFILE="/home/$UNIXUSER/.bash_profile"
-ROOT_PROFILE="/root/.bash_profile"
+UNIXUSER_PROFILE="/home/$UNIXUSER/.profile"
+ROOT_PROFILE="/root/.profile"
 # MySQL
 SHUF=$(shuf -i 25-29 -n 1)
 MYSQL_PASS=$(tr -dc "a-zA-Z0-9@#*=" < /dev/urandom | fold -w "$SHUF" | head -n 1)
@@ -277,7 +278,7 @@ run_app_script() {
     rm -f "${SCRIPTS}/${1}.sh" "${SCRIPTS}/${1}.php" "${SCRIPTS}/${1}.py"
     if wget -q "${APP}/${1}.sh" -P "$SCRIPTS"
     then
-        bash "${SCRIPTS}/${1}.sh >> $SCRIPTS"
+        bash "${SCRIPTS}/${1}.sh"
         rm -f "${SCRIPTS}/${1}.sh"
     elif wget -q "${APP}/${1}.php" -P "$SCRIPTS"
     then

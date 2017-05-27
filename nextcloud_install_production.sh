@@ -82,24 +82,24 @@ EOF
 # Update and upgrade
 clear
 printf "${Cyan}Performing autoclean...${Color_Off}\n\n"
-apt-get autoclean -q4 & spinner_loading
+"$APT" autoclean -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Performing autoremove...${Color_Off}\n\n"
-apt-get	autoremove -y -q4 & spinner_loading
+"$APT"	autoremove -y -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Updating system...${Color_Off}\n\n"
-apt-get update -q4 & spinner_loading
+"$APT" update -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Upgrading system...${Color_Off}\n\n"
-apt-get upgrade -y -q4 & spinner_loading
-apt-get dist-upgrade -y -q4 & spinner_loading
+"$APT" upgrade -y -q4 & spinner_loading
+"$APT" dist-upgrade -y -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Installing missing packages...${Color_Off}\n\n"
-apt-get install -fy -q4 & spinner_loading
+"$APT" install -fy -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Performing: dpkg configure${Color_Off}\n\n"
@@ -107,7 +107,7 @@ dpkg --configure --pending
 printf "Done...\n\n"
 echo
 printf "${Cyan}Installing additional packages...${Color_Off}\n\n"
-apt-get install -y htop git ntpdate figlet ufw dnsutils
+"$APT" install -y htop git ntpdate figlet ufw dnsutils
 #libgd3 libwebp5 libc-client2007e libmcrypt4 libpg5 libxslt1.1
 printf "Done...\n\n"
 
@@ -157,7 +157,7 @@ echo "$NEXTBERRYVERSIONCLEAN" >> "$SCRIPTS"/.version-nc
 # Change DNS
 if ! [ -x "$(command -v resolvconf)" ]
 then
-    apt-get install resolvconf -y -q
+    "$APT" install resolvconf -y -q
     dpkg-reconfigure resolvconf
 fi
 echo "nameserver 8.8.8.8" > /etc/resolv.conf.head
@@ -166,11 +166,11 @@ echo "nameserver 8.8.4.4" >> /etc/resolv.conf.head
 # Check network
 if ! [ -x "$(command -v nslookup)" ]
 then
-    apt-get install dnsutils -y -q
+    "$APT" install dnsutils -y -q
 fi
 if ! [ -x "$(command -v ifup)" ]
 then
-    apt-get install ifupdown -y -q
+    "$APT" install ifupdown -y -q
 fi
 sudo ifdown "$IFACE" && sudo ifup "$IFACE"
 if ! nslookup google.com
@@ -180,7 +180,7 @@ then
 fi
 
 # Set locales
-#apt-get install language-pack-en-base -y
+#"$APT" install language-pack-en-base -y
 sudo locale-gen "en_US.UTF-8" && sudo dpkg-reconfigure --frontend=noninteractive locales
 
 # Set keyboard layout
@@ -206,8 +206,8 @@ chown root:root $MYCNF
 # Install MYSQL
 echo "mysql-server mysql-server/root_password password $MYSQL_PASS" | debconf-set-selections
 echo "mysql-server mysql-server/root_password_again password $MYSQL_PASS" | debconf-set-selections
-check_command apt-get install mysql-server -y
-#check_command apt-get -t stretch install mysql-server-5.6 -y
+check_command "$APT" install mysql-server -y
+#check_command "$APT" -t stretch install mysql-server-5.6 -y
 
 # mysql_secure_installation
 aptitude -y install expect
@@ -234,7 +234,7 @@ echo "$SECURE_MYSQL"
 aptitude -y purge expect
 
 # Install Apache
-check_command apt-get install -t stretch apache2 -y
+check_command "$APT" install -t stretch apache2 -y
 a2enmod rewrite \
         headers \
         env \
@@ -246,7 +246,7 @@ a2enmod rewrite \
 a2dissite 000-default.conf
 
 # Install PHP 7.0
-check_command apt install -t stretch -y \
+check_command "$APT" install -t stretch -y \
     php7.0 \
     libapache2-mod-php7.0 \
     php7.0-common \
@@ -267,10 +267,7 @@ check_command apt install -t stretch -y \
     php7.0-opcache \
     php7.0-fpm
 
-#apt-get install php-smbclient
-#apt-get install -t stretch php-smbclient
-
-apt-get install -y
+"$APT" install -y
     libxml2-dev \
     php-zip \
     php-dom \
@@ -280,9 +277,11 @@ apt-get install -y
     php-curl \
     php-mbstring
 
+"$APT" install -y php-smbclient
+
 # Enable SMB client
- #echo '# This enables php-smbclient' >> /etc/php/7.0/apache2/php.ini
- #echo 'extension="smbclient.so"' >> /etc/php/7.0/apache2/php.ini
+ echo '# This enables php-smbclient' >> /etc/php/7.0/apache2/php.ini
+ echo 'extension="smbclient.so"' >> /etc/php/7.0/apache2/php.ini
 
 # Download and validate Nextcloud package
 check_command download_verify_nextcloud_stable
@@ -467,7 +466,7 @@ sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtpname --value="www.
 sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtppassword --value="vinr vhpa jvbh hovy"
 
 # Install Libreoffice Writer to be able to read MS documents.
-sudo apt-get install --no-install-recommends libreoffice-writer -y
+sudo "$APT" install --no-install-recommends libreoffice-writer -y
 sudo -u www-data php "$NCPATH"/occ config:system:set preview_libreoffice_path --value="/usr/bin/libreoffice"
 
 # Nextcloud apps
@@ -519,12 +518,12 @@ cat /dev/null > /etc/motd
 # Cleanup
 CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e ''"$(uname -r | cut -f1,2 -d"-")"'' | grep -e '[0-9]' | xargs sudo apt-get -y purge)
 echo "$CLEARBOOT"
-apt-get autoremove -y
-apt-get autoclean
+"$APT" autoremove -y
+"$APT" autoclean
 find /root "/home/$UNIXUSER" -type f \( -name '*.sh*' -o -name '*.html*' -o -name '*.tar*' -o -name '*.zip*' \) -delete
 
 # Install extra for UTF8 kernel module + Collabora
-apt-get install --install-recommends -y linux-image-extra-"$(uname -r)"
+"$APT" install --install-recommends -y linux-image-extra-"$(uname -r)"
 
 # Set secure permissions final (./data/.htaccess has wrong permissions otherwise)
 bash "$SECURE" & spinner_loading
