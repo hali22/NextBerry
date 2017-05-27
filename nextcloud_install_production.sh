@@ -66,20 +66,6 @@ then
     exit 1
 fi
 
-# PHP7.0 & Package Pin-Priority
-#echo "deb http://archive.raspbian.org/raspbian/ stretch main" >> /etc/apt/sources.list
-echo "deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free" >> /etc/apt/sources.list
-
-cat << PRIO > "/etc/apt/preferences"
-Package: *
-Pin: release a=jessie
-Pin-Priority: 900
-
-Package: php*
-Pin: release a=jessie-backports
-Pin-Priority: 901
-PRIO
-
 # Update and upgrade
 printf "${Cyan}Performing autoclean...${Color_Off}\n\n"
 apt-get autoclean -q4 & spinner_loading
@@ -126,18 +112,18 @@ fi
 # Set swap if we're using a HD
 if [ ! -f "$NCUSER/.hd" ]
 then
-sed -i 's|#CONF_SWAPFILE=/var/swap|CONF_SWAPFILE=/var/swap|g' /etc/dphys-swapfile
-sed -i 's|#CONF_SWAPSIZE=100|CONF_SWAPSIZE=1000|g' /etc/dphys-swapfile
-sed -i 's|#CONF_MAXSWAP=2048|CONF_MAXSWAP=2048|g' /etc/dphys-swapfile
-/etc/init.d/dphys-swapfile stop
-/etc/init.d/dphys-swapfile start
-/etc/init.d/dphys-swapfile swapon
-echo "vm.swappiness = 10" >> /etc/sysctl.conf
-sysctl -p
+  # Only use swap to prevent out of memory. Speed and less tear on SD
+  echo "vm.swappiness = 0" >> /etc/sysctl.conf
+  sysctl -p
 else
-# Only use swap to prevent out of memory. Speed and less tear on SD
-echo "vm.swappiness = 0" >> /etc/sysctl.conf
-sysctl -p
+  sed -i 's|#CONF_SWAPFILE=/var/swap|CONF_SWAPFILE=/var/swap|g' /etc/dphys-swapfile
+  sed -i 's|#CONF_SWAPSIZE=100|CONF_SWAPSIZE=1000|g' /etc/dphys-swapfile
+  sed -i 's|#CONF_MAXSWAP=2048|CONF_MAXSWAP=2048|g' /etc/dphys-swapfile
+  /etc/init.d/dphys-swapfile stop
+  /etc/init.d/dphys-swapfile start
+  /etc/init.d/dphys-swapfile swapon
+  echo "vm.swappiness = 10" >> /etc/sysctl.conf
+  sysctl -p
 fi
 
 # Setup firewall-rules
@@ -243,8 +229,20 @@ a2enmod rewrite \
         setenvif
 a2dissite 000-default.conf
 
+# PHP7.0
+sed -i 's|deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi|#deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi|g' /etc/apt/sources.list
+#echo "deb http://archive.raspbian.org/raspbian/ stretch main" >> /etc/apt/sources.list
+echo "deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free" >> /etc/apt/sources.list
+
+echo
+printf "${Cyan}Updating system...${Color_Off}\n\n"
+apt-get update -q4 & spinner_loading
+printf "Done...\n\n"
+echo
+
 # Install php7.0
 check_command apt-get install -y \
+    php \
     libapache2-mod-php \
     php-common \
     php-mysql \
@@ -260,8 +258,17 @@ check_command apt-get install -y \
     php-curl \
     php-xml \
     php-zip \
-    php-mbstring
-check_command apt-get -t jessie-backports install php-smbclient -y
+    php-mbstring \
+    php-smbclient -y
+
+sed -i 's|#deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi|deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi|g' /etc/apt/sources.list
+sed -i 's|deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free|#deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free|g' /etc/apt/sources.list
+
+echo
+printf "${Cyan}Updating system...${Color_Off}\n\n"
+apt-get update -q4 & spinner_loading
+printf "Done...\n\n"
+echo
 
 # Enable SMB client
  echo '# This enables php-smbclient' >> /etc/php/7.0/apache2/php.ini
