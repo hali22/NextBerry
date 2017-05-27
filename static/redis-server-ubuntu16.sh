@@ -26,10 +26,11 @@ then
 fi
 
 # Get packages to be able to install Redis
-apt-get update -q4 & spinner_loading
-sudo apt-get install -q -y \
+"$APT" update -q4 & spinner_loading
+"$APT" install -q -y \
     build-essential \
     tcl8.5 \
+"$APT" -t stretch -y \
     php-dev \
     php-pear
 
@@ -52,7 +53,7 @@ service apache2 restart
 
 
 # Install Redis
-if ! apt-get -y install redis-server
+if ! "$APT" -y install redis-server
 then
     echo "Installation failed."
     sleep 3
@@ -97,12 +98,12 @@ chown redis:root /etc/redis/redis.conf
 chmod 600 /etc/redis/redis.conf
 
 # Cleanup
-apt-get purge -y \
+"$APT" purge -y \
     git \
     build-essential*
 
-apt-get update -q4 & spinner_loading
-apt-get autoremove -y
-apt-get autoclean
+"$APT" update -q4 & spinner_loading
+"$APT" autoremove -y
+"$APT" autoclean
 
 exit
