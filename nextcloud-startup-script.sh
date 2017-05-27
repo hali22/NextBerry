@@ -64,7 +64,7 @@ else
   while read -r line; do
       i=$(( i + 1 ))
       echo $i
-  done < <(apt-get update; apt-get install whiptail -y)
+  done < <("$APT" update; "$APT" install whiptail -y)
 } | whiptail --title "Progress" --gauge "Please wait while installing Whiptail..." 6 60 0
 
 fi
@@ -541,8 +541,8 @@ clear
 ADDRESS2=$(grep "address" /etc/network/interfaces | awk '$1 == "address" { print $2 }')
 
 # Cleanup 2
-apt-get autoremove -y
-apt-get autoclean
+"$APT" autoremove -y
+"$APT" autoclean
 CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e "$(uname -r | cut -f1,2 -d"-")" | grep -e "[0-9]" | xargs sudo apt-get -y purge)
 echo "$CLEARBOOT"
 
@@ -568,24 +568,24 @@ clear
 
 # Update and upgrade
 printf "${Cyan}Performing autoclean...${Color_Off}\n\n"
-apt-get autoclean -q4 & spinner_loading
+"$APT" autoclean -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Performing autoremove...${Color_Off}\n\n"
-apt-get autoremove -y -q4 & spinner_loading
+"$APT" autoremove -y -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Updating system...${Color_Off}\n\n"
-apt-get update -q4 & spinner_loading
+"$APT" update -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Upgrading system...${Color_Off}\n\n"
-apt-get upgrade -y -q4 & spinner_loading
-apt-get dist-upgrade -y -q4 & spinner_loading
+"$APT" upgrade -y -q4 & spinner_loading
+"$APT" dist-upgrade -y -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Installing missing packages...${Color_Off}\n\n"
-apt-get install -fy -q4 & spinner_loading
+"$APT" install -fy -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Performing: dpkg configure${Color_Off}\n\n"
