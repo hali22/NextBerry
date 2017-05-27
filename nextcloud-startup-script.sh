@@ -568,6 +568,45 @@ echo    "+--------------------------------------------------------------------+"
 printf "${Color_Off}\n"
 clear
 
+# Repo issue
+sed -i 's|#deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free|deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free|g' /etc/apt/sources.list
+cat << PRIO > "/etc/apt/preferences"
+Package: *
+Pin: release a=jessie
+Pin-Priority: 900
+
+Package: php
+Pin: release a=jessie-backports
+Pin-Priority: 901
+PRIO
+
+# Update and upgrade
+printf "${Cyan}Performing autoclean...${Color_Off}\n\n"
+apt-get autoclean -q4 & spinner_loading
+printf "Done...\n\n"
+echo
+printf "${Cyan}Performing autoremove...${Color_Off}\n\n"
+apt-get	autoremove -y -q4 & spinner_loading
+printf "Done...\n\n"
+echo
+printf "${Cyan}Updating system...${Color_Off}\n\n"
+apt-get update -q4 & spinner_loading
+printf "Done...\n\n"
+echo
+printf "${Cyan}Upgrading system...${Color_Off}\n\n"
+apt-get upgrade -y -q4 & spinner_loading
+apt-get dist-upgrade -y -q4 & spinner_loading
+printf "Done...\n\n"
+echo
+printf "${Cyan}Installing missing packages...${Color_Off}\n\n"
+apt-get install -fy -q4 & spinner_loading
+printf "Done...\n\n"
+echo
+printf "${Cyan}Performing: dpkg configure${Color_Off}\n\n"
+dpkg --configure --pending
+printf "Done...\n\n"
+echo
+
 # Set trusted domain in config.php
 echo "trusted.sh:" >> "$SCRIPTS"/logs
 bash "$SCRIPTS"/trusted.sh
