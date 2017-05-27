@@ -64,7 +64,7 @@ else
   while read -r line; do
       i=$(( i + 1 ))
       echo $i
-  done < <(aptitude update; aptitude install whiptail -y)
+  done < <(apt-get update; apt-get install whiptail -y)
 } | whiptail --title "Progress" --gauge "Please wait while installing Whiptail..." 6 60 0
 
 fi
@@ -435,8 +435,6 @@ done 9< results
 rm -f results
 clear
 
-
-
 # Add extra security
 if [[ "yes" == $(ask_yes_or_no "Do you want to add extra security, based on this: http://goo.gl/gEJHi7 ?") ]]
 then
@@ -543,8 +541,8 @@ clear
 ADDRESS2=$(grep "address" /etc/network/interfaces | awk '$1 == "address" { print $2 }')
 
 # Cleanup 2
-aptitude autoremove -y
-aptitude autoclean
+apt-get autoremove -y
+apt-get autoclean
 CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e "$(uname -r | cut -f1,2 -d"-")" | grep -e "[0-9]" | xargs sudo apt-get -y purge)
 echo "$CLEARBOOT"
 
@@ -568,39 +566,26 @@ echo    "+--------------------------------------------------------------------+"
 printf "${Color_Off}\n"
 clear
 
-# Repo issue
-sed -i 's|#deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free|deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free|g' /etc/apt/sources.list
-
-cat << PRIO > "/etc/apt/preferences"
-Package: *
-Pin: release a=jessie
-Pin-Priority: 900
-
-Package: *
-Pin: release a=jessie-backports
-Pin-Priority: 50
-PRIO
-
 # Update and upgrade
 printf "${Cyan}Performing autoclean...${Color_Off}\n\n"
-aptitude autoclean -q4 & spinner_loading
+apt-get autoclean -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Performing autoremove...${Color_Off}\n\n"
-aptitude autoremove -y -q4 & spinner_loading
+apt-get autoremove -y -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Updating system...${Color_Off}\n\n"
-aptitude update -q4 & spinner_loading
+apt-get update -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Upgrading system...${Color_Off}\n\n"
-aptitude full-upgrade -y -q4 & spinner_loading
-#aptitude dist-upgrade -y -q4 & spinner_loading
+apt-get upgrade -y -q4 & spinner_loading
+apt-get dist-upgrade -y -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Installing missing packages...${Color_Off}\n\n"
-aptitude install -fy -q4 & spinner_loading
+apt-get install -fy -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Performing: dpkg configure${Color_Off}\n\n"
