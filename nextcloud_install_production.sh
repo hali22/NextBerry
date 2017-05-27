@@ -470,7 +470,6 @@ sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtppassword --value="
 sudo apt-get install --no-install-recommends libreoffice-writer -y
 sudo -u www-data php "$NCPATH"/occ config:system:set preview_libreoffice_path --value="/usr/bin/libreoffice"
 
-
 # Nextcloud apps
 whiptail --title "Which apps/programs do you want to install?" --checklist --separate-output "" 10 40 3 \
 "Calendar" "              " on \
@@ -513,9 +512,6 @@ check_command run_static_script change-root-profile
 
 # Install Redis
 run_static_script redis-server-ubuntu16
-
-# Remove LXD (always shows up as failed during boot)
-apt-get purge lxd -y
 
 # Cleanup login screen
 cat /dev/null > /etc/motd
