@@ -1,4 +1,4 @@
-#!/bin/bash
+upgrade#!/bin/bash
 # shellcheck disable=2034,2059,2140
 true
 # shellcheck source=lib.sh
@@ -36,6 +36,11 @@ clear
 echo
 echo "Current user with sudo permissions is: $UNIXUSER".
 echo "This script will set up everything with that user."
+echo "If the field after ':' is blank you are probably running as a pure root user."
+echo "It's possible to install with root, but there will be minor errors."
+echo
+echo "Please create a user with sudo permissions if you want an optimal installation."
+run_static_script adduser
 echo
 
 # Check if key is available
@@ -57,41 +62,44 @@ fi
 if [ "$(dpkg-query -W -f='${Status}' apache2 2>/dev/null | grep -c "ok installed")" == "1" ]
 then
     echo "Apache2 is installed, it must be a clean server."
-    exit 1
+    #exit 1
 fi
 
 if [ "$(dpkg-query -W -f='${Status}' php 2>/dev/null | grep -c "ok installed")" == "1" ]
 then
     echo "PHP is installed, it must be a clean server."
-    exit 1
+    #exit 1
 fi
 
-# PHP7.0
-#sed -i 's|deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi|#deb http://mirrordirector.raspbian.org/raspbian/ jessie main contrib non-free rpi|g' /etc/apt/sources.list
-#echo "deb http://archive.raspbian.org/raspbian/ stretch main" >> /etc/apt/sources.list
-sed -i 's|deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free|#deb http://repozytorium.mati75.eu/raspbian jessie-backports main contrib non-free|g' /etc/apt/sources.list
+echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi" >> /etc/apt/sources.list
+
+cat > /etc/apt/preferences <<EOF
+Package: *
+Pin: release n=jessie
+Pin-Priority: 600
+EOF
 
 # Update and upgrade
 clear
 printf "${Cyan}Performing autoclean...${Color_Off}\n\n"
-aptitude autoclean -q4 & spinner_loading
+apt-get autoclean -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Performing autoremove...${Color_Off}\n\n"
-aptitude	autoremove -y -q4 & spinner_loading
+apt-get	autoremove -y -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Updating system...${Color_Off}\n\n"
-aptitude update -q4 & spinner_loading
+apt-get update -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Upgrading system...${Color_Off}\n\n"
-aptitude full-upgrade -y -q4 & spinner_loading
-#aptitude dist-upgrade -y -q4 & spinner_loading
+apt-get upgrade -y -q4 & spinner_loading
+apt-get dist-upgrade -y -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Installing missing packages...${Color_Off}\n\n"
-aptitude install -fy -q4 & spinner_loading
+apt-get install -fy -q4 & spinner_loading
 printf "Done...\n\n"
 echo
 printf "${Cyan}Performing: dpkg configure${Color_Off}\n\n"
@@ -99,7 +107,7 @@ dpkg --configure --pending
 printf "Done...\n\n"
 echo
 printf "${Cyan}Installing additional packages...${Color_Off}\n\n"
-aptitude install -y htop git ntpdate figlet ufw dnsutils
+apt-get install -y htop git ntpdate figlet ufw dnsutils
 #libgd3 libwebp5 libc-client2007e libmcrypt4 libpg5 libxslt1.1
 printf "Done...\n\n"
 
@@ -149,7 +157,7 @@ echo "$NEXTBERRYVERSIONCLEAN" >> "$SCRIPTS"/.version-nc
 # Change DNS
 if ! [ -x "$(command -v resolvconf)" ]
 then
-    aptitude install resolvconf -y -q
+    apt-get install resolvconf -y -q
     dpkg-reconfigure resolvconf
 fi
 echo "nameserver 8.8.8.8" > /etc/resolv.conf.head
@@ -158,11 +166,11 @@ echo "nameserver 8.8.4.4" >> /etc/resolv.conf.head
 # Check network
 if ! [ -x "$(command -v nslookup)" ]
 then
-    aptitude install dnsutils -y -q
+    apt-get install dnsutils -y -q
 fi
 if ! [ -x "$(command -v ifup)" ]
 then
-    aptitude install ifupdown -y -q
+    apt-get install ifupdown -y -q
 fi
 sudo ifdown "$IFACE" && sudo ifup "$IFACE"
 if ! nslookup google.com
@@ -172,7 +180,7 @@ then
 fi
 
 # Set locales
-#aptitude install language-pack-en-base -y
+#apt-get install language-pack-en-base -y
 sudo locale-gen "en_US.UTF-8" && sudo dpkg-reconfigure --frontend=noninteractive locales
 
 # Set keyboard layout
@@ -198,8 +206,8 @@ chown root:root $MYCNF
 # Install MYSQL
 echo "mysql-server mysql-server/root_password password $MYSQL_PASS" | debconf-set-selections
 echo "mysql-server mysql-server/root_password_again password $MYSQL_PASS" | debconf-set-selections
-check_command aptitude install mysql-server -y
-#check_command aptitude -t stretch install mysql-server-5.6 -y
+check_command apt-get install mysql-server -y
+#check_command apt-get -t stretch install mysql-server-5.6 -y
 
 # mysql_secure_installation
 aptitude -y install expect
@@ -226,7 +234,7 @@ echo "$SECURE_MYSQL"
 aptitude -y purge expect
 
 # Install Apache
-check_command aptitude install apache2 -y
+check_command apt-get install -t stretch apache2 -y
 a2enmod rewrite \
         headers \
         env \
@@ -234,11 +242,47 @@ a2enmod rewrite \
         mime \
         ssl \
         setenvif
+        
 a2dissite 000-default.conf
 
+# Install PHP 7.0
+check_command apt install -t stretch -y \
+    php7.0 \
+    libapache2-mod-php7.0 \
+    php7.0-common \
+    php7.0-mysql \
+    php7.0-intl \
+    php7.0-mcrypt \
+    php7.0-ldap \
+    php7.0-imap \
+    php7.0-cli \
+    php7.0-gd \
+    php7.0-pgsql \
+    php7.0-json \
+    php7.0-sqlite3 \
+    php7.0-curl \
+    php7.0-xml \
+    php7.0-zip \
+    php7.0-mbstring \
+    php7.0-opcache \
+    php7.0-fpm
+
+#apt-get install php-smbclient
+#apt-get install -t stretch php-smbclient
+
+apt-get install -y
+    libxml2-dev \
+    php-zip \
+    php-dom \
+    php-xmlwriter \
+    php-xmlreader \
+    php-gd \
+    php-curl \
+    php-mbstring
+
 # Enable SMB client
- echo '# This enables php-smbclient' >> /etc/php/7.0/apache2/php.ini
- echo 'extension="smbclient.so"' >> /etc/php/7.0/apache2/php.ini
+ #echo '# This enables php-smbclient' >> /etc/php/7.0/apache2/php.ini
+ #echo 'extension="smbclient.so"' >> /etc/php/7.0/apache2/php.ini
 
 # Download and validate Nextcloud package
 check_command download_verify_nextcloud_stable
@@ -423,7 +467,7 @@ sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtpname --value="www.
 sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtppassword --value="vinr vhpa jvbh hovy"
 
 # Install Libreoffice Writer to be able to read MS documents.
-sudo aptitude install --no-install-recommends libreoffice-writer -y
+sudo apt-get install --no-install-recommends libreoffice-writer -y
 sudo -u www-data php "$NCPATH"/occ config:system:set preview_libreoffice_path --value="/usr/bin/libreoffice"
 
 
@@ -471,7 +515,7 @@ check_command run_static_script change-root-profile
 run_static_script redis-server-ubuntu16
 
 # Remove LXD (always shows up as failed during boot)
-aptitude purge lxd -y
+apt-get purge lxd -y
 
 # Cleanup login screen
 cat /dev/null > /etc/motd
@@ -479,12 +523,12 @@ cat /dev/null > /etc/motd
 # Cleanup
 CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e ''"$(uname -r | cut -f1,2 -d"-")"'' | grep -e '[0-9]' | xargs sudo apt-get -y purge)
 echo "$CLEARBOOT"
-aptitude autoremove -y
-aptitude autoclean
+apt-get autoremove -y
+apt-get autoclean
 find /root "/home/$UNIXUSER" -type f \( -name '*.sh*' -o -name '*.html*' -o -name '*.tar*' -o -name '*.zip*' \) -delete
 
 # Install extra for UTF8 kernel module + Collabora
-aptitude install --install-recommends -y linux-image-extra-"$(uname -r)"
+apt-get install --install-recommends -y linux-image-extra-"$(uname -r)"
 
 # Set secure permissions final (./data/.htaccess has wrong permissions otherwise)
 bash "$SECURE" & spinner_loading
