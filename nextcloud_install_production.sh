@@ -107,7 +107,7 @@ dpkg --configure --pending
 printf "Done...\n\n"
 echo
 printf "${Cyan}Installing additional packages...${Color_Off}\n\n"
-"$APT" install -y htop git ntpdate figlet ufw dnsutils
+"$APT" install -y htop git ntp ntpdate figlet ufw dnsutils
 #libgd3 libwebp5 libc-client2007e libmcrypt4 libpg5 libxslt1.1
 printf "Done...\n\n"
 
@@ -359,7 +359,6 @@ echo "opcache.save_comments=1"
 echo "opcache.revalidate_freq=1"
 } >> /etc/php/7.0/apache2/php.ini
 
-
 # Enable http2
 cat >/etc/apache2/conf-available/http2.conf <<EOF
 Protocols h2 h2c http/1.1
@@ -425,7 +424,7 @@ then
     touch "$SSL_CONF"
     cat << SSL_CREATE > "$SSL_CONF"
 <VirtualHost *:443>
-    Header add Strict-Transport-Security: "max-age=15768000;includeSubdomains"
+    Header add Strict-Transport-Security: "max-age=15768000; includeSubdomains; preload"
     SSLEngine on
 
 ### YOUR SERVER ADDRESS ###
