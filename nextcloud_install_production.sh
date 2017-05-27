@@ -107,7 +107,7 @@ dpkg --configure --pending
 printf "Done...\n\n"
 echo
 printf "${Cyan}Installing additional packages...${Color_Off}\n\n"
-"$APT" install -y htop git ntpdate figlet ufw dnsutils
+"$APT" install -y htop git ntp ntpdate figlet ufw dnsutils
 #libgd3 libwebp5 libc-client2007e libmcrypt4 libpg5 libxslt1.1
 printf "Done...\n\n"
 
@@ -359,6 +359,23 @@ echo "opcache.save_comments=1"
 echo "opcache.revalidate_freq=1"
 } >> /etc/php/7.0/apache2/php.ini
 
+# Enable http2
+cat >/etc/apache2/conf-available/http2.conf <<EOF
+Protocols h2 h2c http/1.1
+H2Push          on
+H2PushPriority  *                       after
+H2PushPriority  text/css                before
+H2PushPriority  image/jpeg              after   32
+H2PushPriority  image/png               after   32
+H2PushPriority  application/javascript  interleaved
+SSLProtocol all -SSLv2 -SSLv3
+SSLHonorCipherOrder on
+SSLCipherSuite 'EECDH+ECDSA+AESGCM EECDH+aRSA+AESGCM EECDH+ECDSA+SHA384 EECDH+ECDSA+SHA256 EECDH+aRSA+SHA384 EECDH+aRSA+SHA256 EECDH+aRSA+RC4 EECDH EDH+aRSA !RC4 !aNULL !eNULL !LOW !3DES !MD5 !EXP !PSK !SRP !DSS'
+EOF
+
+a2enmod http2
+a2enconf http2
+
 # Install preview generator
 run_app_script previewgenerator
 
@@ -407,7 +424,7 @@ then
     touch "$SSL_CONF"
     cat << SSL_CREATE > "$SSL_CONF"
 <VirtualHost *:443>
-    Header add Strict-Transport-Security: "max-age=15768000;includeSubdomains"
+    Header add Strict-Transport-Security: "max-age=15768000; includeSubdomains; preload"
     SSLEngine on
 
 ### YOUR SERVER ADDRESS ###
