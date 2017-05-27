@@ -1,4 +1,4 @@
-upgrade#!/bin/bash
+#!/bin/bash
 # shellcheck disable=2034,2059,2140
 true
 # shellcheck source=lib.sh
@@ -242,7 +242,7 @@ a2enmod rewrite \
         mime \
         ssl \
         setenvif
-        
+
 a2dissite 000-default.conf
 
 # Install PHP 7.0
