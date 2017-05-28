@@ -1,4 +1,6 @@
 #!/bin/bash
+# shellcheck disable=2034,2059,2140,2004
+true
 # Tech and Me © - 2017, https://www.techandme.se/
 upSeconds="$(/usr/bin/cut -d. -f1 /proc/uptime)"
 secs=$((${upSeconds}%60))
@@ -21,9 +23,7 @@ WANIP4=$(curl -s ipinfo.io/ip -m 5)
 WANIP6=$(curl -s 6.ifcfg.me -m 5)
 ADDRESS=$(hostname -I | cut -d ' ' -f 1)
 RELEASE=$(lsb_release -s -d)
-BIN_UPTIME=$(/usr/bin/uptime --pretty)
 HTML=/var/www
-NCPATH=$HTML/nextcloud
 NCREPO="https://download.nextcloud.com/server/releases"
 CURRENTVERSIONNC=$(cat $SCRIPTS/.versionnc)
 NCVERSION=$(curl -s --max-time 900 $NCREPO/ | tac | grep unknown.gif | sed 's/.*"nextcloud-\([^"]*\).zip.sha512".*/\1/;q')
