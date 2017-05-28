@@ -107,7 +107,7 @@ dpkg --configure --pending
 printf "Done...\n\n"
 echo
 printf "${Cyan}Installing additional packages...${Color_Off}\n\n"
-"$APT" install -y htop git ntp ntpdate figlet ufw dnsutils pastebinit wicd-curses
+"$APT" install -y htop git ntp ntpdate figlet ufw dnsutils pastebinit
 #libgd3 libwebp5 libc-client2007e libmcrypt4 libpg5 libxslt1.1
 printf "Done...\n\n"
 
