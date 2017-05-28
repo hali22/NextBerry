@@ -440,6 +440,8 @@ cat << RCLOCAL > "/etc/rc.local"
 #
 # By default this script does nothing.
 
+sudo -u www-data php /var/www/nextcloud/occ status | grep "versionstring" | awk '{print $3}' > "$SCRIPTS/.versionnc"
+
 exit 0
 
 RCLOCAL
@@ -472,33 +474,6 @@ printf "|    ${IRed}#################### Tech and Me - 2017 ####################
 echo    "+--------------------------------------------------------------------+"
 printf "${Color_Off}\n"
 clear
-
-# Update and upgrade
-printf "${Cyan}Performing autoclean...${Color_Off}\n\n"
-"$APT" autoclean -q4 & spinner_loading
-printf "Done...\n\n"
-echo
-printf "${Cyan}Performing autoremove...${Color_Off}\n\n"
-"$APT" autoremove -y -q4 & spinner_loading
-printf "Done...\n\n"
-echo
-printf "${Cyan}Updating system...${Color_Off}\n\n"
-"$APT" update -q4 & spinner_loading
-printf "Done...\n\n"
-echo
-printf "${Cyan}Upgrading system...${Color_Off}\n\n"
-"$APT" upgrade -y -q4 & spinner_loading
-"$APT" dist-upgrade -y -q4 & spinner_loading
-printf "Done...\n\n"
-echo
-printf "${Cyan}Installing missing packages...${Color_Off}\n\n"
-"$APT" install -fy -q4 & spinner_loading
-printf "Done...\n\n"
-echo
-printf "${Cyan}Performing: dpkg configure${Color_Off}\n\n"
-dpkg --configure --pending
-printf "Done...\n\n"
-echo
 
 # Set trusted domain in config.php
 echo "trusted.sh:" >> "$SCRIPTS"/logs

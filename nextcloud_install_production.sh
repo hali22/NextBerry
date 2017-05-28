@@ -111,10 +111,6 @@ printf "${Cyan}Installing additional packages...${Color_Off}\n\n"
 #libgd3 libwebp5 libc-client2007e libmcrypt4 libpg5 libxslt1.1
 printf "Done...\n\n"
 
-# Fix Perl issues
-#sed -i 's|${([^}]+)}/$ENV{|$\{([^}]+)}/$ENV\{|g' /usr/share/perl5/Debconf/Config.pm
-#sed -i 's|${([^{}|$\{([^\{}|g' /usr/share/perl5/Debconf/Question.pm
-
 # Enable apps to connect to RPI and read vcgencmd
 usermod -aG video $NCUSER
 
@@ -322,6 +318,7 @@ echo
 
 # Prepare cron.php to be run every 15 minutes
 crontab -u www-data -l | { cat; echo "*/15  *  *  *  * php -f $NCPATH/cron.php > /dev/null 2>&1"; } | crontab -u www-data -
+crontab -u www-data -l | { cat; echo "13  *  *  *  * php -f $NCPATH/occ status | grep "versionstring" | awk '{print $3}' > /$SCRIPTS/.versionnc"; } | crontab -u www-data -
 
 # Change values in php.ini (increase max file size)
 # max_execution_time
@@ -372,7 +369,6 @@ SSLProtocol all -SSLv2 -SSLv3
 SSLHonorCipherOrder on
 SSLCipherSuite 'EECDH+ECDSA+AESGCM EECDH+aRSA+AESGCM EECDH+ECDSA+SHA384 EECDH+ECDSA+SHA256 EECDH+aRSA+SHA384 EECDH+aRSA+SHA256 EECDH+aRSA+RC4 EECDH EDH+aRSA !RC4 !aNULL !eNULL !LOW !3DES !MD5 !EXP !PSK !SRP !DSS'
 EOF
-
 a2enmod http2
 a2enconf http2
 
