@@ -94,10 +94,6 @@ chown redis:root /etc/redis/redis.conf
 chmod 600 /etc/redis/redis.conf
 
 # Cleanup
-"$APT" purge -y \
-    git \
-    build-essential*
-
 "$APT" update -q4 & spinner_loading
 "$APT" autoremove -y
 "$APT" autoclean

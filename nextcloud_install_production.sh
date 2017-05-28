@@ -537,9 +537,6 @@ echo "$CLEARBOOT"
 "$APT" autoclean
 find /root "/home/$UNIXUSER" -type f \( -name '*.sh*' -o -name '*.html*' -o -name '*.tar*' -o -name '*.zip*' \) -delete
 
-# Install extra for UTF8 kernel module + Collabora
-"$APT" install --install-recommends -y linux-image-extra-"$(uname -r)"
-
 # Set secure permissions final (./data/.htaccess has wrong permissions otherwise)
 bash "$SECURE" & spinner_loading
 
