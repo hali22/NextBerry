@@ -177,6 +177,7 @@ download_static_script ip
 download_static_script test_connection
 download_static_script setup_secure_permissions_nextcloud
 download_static_script change_mysql_pass
+download_static_script nextberry-upgrade
 download_static_script nextcloud
 download_static_script update-config
 download_static_script index
@@ -194,100 +195,6 @@ then
     echo "activate-ssl failed"
     echo "Script failed to download. Please run: 'sudo bash $SCRIPTS/nextcloud-startup-script.sh' again."
     exit 1
-fi
-
-# Tests connection after static IP is set
-if [ -f "$SCRIPTS"/test_connection.sh ]
-then
-    rm "$SCRIPTS"/test_connection.sh
-    wget -q "$STATIC"/test_connection.sh -P "$SCRIPTS"
-else
-    wget -q "$STATIC"/test_connection.sh -P "$SCRIPTS"
-fi
-if [ -f "$SCRIPTS"/test_connection.sh ]
-then
-    sleep 0.1
-else
-    echo "test_connection failed"
-    echo "Script failed to download. Please run: 'sudo bash $SCRIPTS/nextcloud-startup-script.sh' again."
-    exit 1
-fi
-
-# Get latest updates of NextBerry
-if [ -f "$SCRIPTS"/nextberry-upgrade.sh ]
-then
-    rm "$SCRIPTS"/nextberry-upgrade.sh
-    wget -q "$STATIC"/nextberry-upgrade.sh -P "$SCRIPTS"
-else
-    wget -q "$STATIC"/nextberry-upgrade.sh -P "$SCRIPTS"
-fi
-if [ -f "$SCRIPTS"/nextberry-upgrade.sh ]
-then
-    sleep 0.1
-else
-    echo "nextberry-upgrade.sh failed"
-    echo "Script failed to download. Please run: 'sudo bash $SCRIPTS/nextcloud-startup-script.sh' again."
-    exit 1
-fi
-
-# Sets secure permissions after upgrade
-if [ -f "$SCRIPTS"/setup_secure_permissions_nextcloud.sh ]
-then
-    rm "$SCRIPTS"/setup_secure_permissions_nextcloud.sh
-    wget -q "$STATIC"/setup_secure_permissions_nextcloud.sh -P "$SCRIPTS"
-else
-    wget -q "$STATIC"/setup_secure_permissions_nextcloud.sh -P "$SCRIPTS"
-fi
-if [ -f "$SCRIPTS"/setup_secure_permissions_nextcloud.sh ]
-then
-    sleep 0.1
-else
-    echo "setup_secure_permissions_nextcloud failed"
-    echo "Script failed to download. Please run: 'sudo bash $SCRIPTS/nextcloud-startup-script.sh' again."
-    exit 1
-fi
-
-# Change MySQL password
-if [ -f "$SCRIPTS"/change_mysql_pass.sh ]
-then
-    rm "$SCRIPTS"/change_mysql_pass.sh
-    wget -q "$STATIC"/change_mysql_pass.sh
-else
-    wget -q "$STATIC"/change_mysql_pass.sh -P "$SCRIPTS"
-fi
-if [ -f "$SCRIPTS"/change_mysql_pass.sh ]
-then
-    sleep 0.1
-else
-    echo "change_mysql_pass failed"
-    echo "Script failed to download. Please run: 'sudo bash $SCRIPTS/nextcloud-startup-script.sh' again."
-    exit 1
-fi
-
-# Get figlet Tech and Me
-if [ -f "$SCRIPTS"/nextcloud.sh ]
-then
-    rm "$SCRIPTS"/nextcloud.sh
-    wget -q "$STATIC"/nextcloud.sh -P "$SCRIPTS"
-else
-    wget -q "$STATIC"/nextcloud.sh -P "$SCRIPTS"
-fi
-if [ -f "$SCRIPTS"/nextcloud.sh ]
-then
-    sleep 0.1
-else
-    echo "nextcloud failed"
-    echo "Script failed to download. Please run: 'sudo bash $SCRIPTS/nextcloud-startup-script.sh' again."
-    exit 1
-fi
-
-# Get the Welcome Screen when http://$address
-if [ -f "$SCRIPTS"/index.php ]
-then
-    rm "$SCRIPTS"/index.php
-    wget -q $GITHUB_REPO/index.php -P "$SCRIPTS"
-else
-    wget -q $GITHUB_REPO/index.php -P "$SCRIPTS"
 fi
 
 mv "$SCRIPTS"/index.php $HTML/index.php && rm -f $HTML/html/index.html
