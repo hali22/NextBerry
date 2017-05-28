@@ -1,7 +1,10 @@
 #!/bin/bash
-VERSIONFILE="/var/scripts/.version-nc"
-SCRIPTS="/var/scripts"
-STATIC="https://raw.githubusercontent.com/techandme/NextBerry/master/static"
+# shellcheck disable=2034,2059
+true
+# shellcheck source=lib.sh
+. <(curl -sL https://raw.githubusercontent.com/techandme/NextBerry/master/lib.sh)
+
+# Tech and Me © - 2017, https://www.techandme.se/
 
 # Check if root
 if [ "$(whoami)" != "root" ]
@@ -13,13 +16,35 @@ then
 fi
 
 # Update and upgrade
-apt-get autoclean
-apt-get	autoremove -y
-apt-get update
-apt-get upgrade -y
-apt-get install -fy
+printf "${Cyan}Performing autoclean...${Color_Off}\n\n"
+"$APT" autoclean -q4 & spinner_loading
+printf "Done...\n\n"
+echo
+printf "${Cyan}Performing autoremove...${Color_Off}\n\n"
+"$APT" autoremove -y -q4 & spinner_loading
+printf "Done...\n\n"
+echo
+printf "${Cyan}Updating system...${Color_Off}\n\n"
+"$APT" update -q4 & spinner_loading
+printf "Done...\n\n"
+echo
+printf "${Cyan}Upgrading system...${Color_Off}\n\n"
+"$APT" upgrade -y -q4 & spinner_loading
+"$APT" dist-upgrade -y -q4 & spinner_loading
+printf "Done...\n\n"
+echo
+printf "${Cyan}Installing missing packages...${Color_Off}\n\n"
+"$APT" install -fy -q4 & spinner_loading
+printf "Done...\n\n"
+echo
+printf "${Cyan}Performing: dpkg configure${Color_Off}\n\n"
 dpkg --configure --pending
+printf "Done...\n\n"
+echo
+printf "${Cyan}Performing: Nextcloud upgrade${Color_Off}\n\n"
 bash /var/scripts/update.sh
+printf "Done...\n\n"
+echo
 
 # Whiptail auto-size
 calc_wt_size() {
@@ -114,7 +139,7 @@ sed -i 's|011|012|g' "$VERSIONFILE"
 sed -i 's|V1.1|V1.2|g' "$VERSIONFILE"
 
 # Done - Move this line to the new release on every new version.
-whiptail --msgbox "Successfully installed V1.2, please manually reboot..." 10 65
+#whiptail --msgbox "Successfully installed V1.2, please manually reboot..." 10 65
 fi
 
 ################### V1.3 ####################
