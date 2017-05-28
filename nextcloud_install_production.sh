@@ -313,13 +313,11 @@ check_command sudo -u www-data php occ maintenance:install \
 echo
 echo "Nextcloud version:"
 sudo -u www-data php "$NCPATH"/occ status
-sudo -u www-data php /var/www/nextcloud/occ status | grep "versionstring" | awk '{print $3}' > "$SCRIPTS/.versionnc"
 sleep 3
 echo
 
 # Prepare cron.php to be run every 15 minutes
 crontab -u www-data -l | { cat; echo "*/15  *  *  *  * php -f $NCPATH/cron.php > /dev/null 2>&1"; } | crontab -u www-data -
-crontab -u www-data -l | { cat; echo "13  *  *  *  * php -f $NCPATH/occ status | grep "versionstring" | awk '{print $3}' > /$SCRIPTS/.versionnc"; } | crontab -u www-data -
 
 # Change values in php.ini (increase max file size)
 # max_execution_time
@@ -539,6 +537,10 @@ find /root "/home/$UNIXUSER" -type f \( -name '*.sh*' -o -name '*.html*' -o -nam
 
 # Set secure permissions final (./data/.htaccess has wrong permissions otherwise)
 bash "$SECURE" & spinner_loading
+
+# Set version
+sudo -u www-data php "$NCPATH"/occ status | grep "versionstring" | awk '{print $3}' > "$SCRIPTS/.versionnc"
+chmod 777 :$SCRIPTS/.versionnc
 
 # Reboot
 echo "Installation done, system will now reboot..."
