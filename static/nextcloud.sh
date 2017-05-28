@@ -2,6 +2,16 @@
 # shellcheck disable=2034,2059,2140,2004
 true
 # Tech and Me © - 2017, https://www.techandme.se/
+
+version_gt() {
+    local v1 v2 IFS=.
+    read -ra v1 <<< "$1"
+    read -ra v2 <<< "$2"
+    printf -v v1 %03d "${v1[@]}"
+    printf -v v2 %03d "${v2[@]}"
+    [[ $v1 > $v2 ]]
+}
+
 upSeconds="$(/usr/bin/cut -d. -f1 /proc/uptime)"
 secs=$((${upSeconds}%60))
 mins=$((${upSeconds}/60%60))
@@ -26,7 +36,7 @@ RELEASE=$(lsb_release -s -d)
 HTML=/var/www
 NCREPO="https://download.nextcloud.com/server/releases"
 CURRENTVERSIONNC=$(cat $SCRIPTS/.versionnc)
-NCVERSION=$(curl -s --max-time 900 $NCREPO/ | tac | grep unknown.gif | sed 's/.*"nextcloud-\([^"]*\).zip.sha512".*/\1/;q')
+NCVERSION=$(curl -s -m 900 $NCREPO/ | sed --silent 's/.*href="nextcloud-\([^"]\+\).zip.asc".*/\1/p' | sort --version-sort | tail -1)
 COLOR_WHITE='\033[1;37m'
 COLOR_DEFAULT='\033[0m'
 OS=$(printf "Operating system: %s (%s %s %s)\n" "$RELEASE" "$(uname -o)" "$(uname -r)" "$(uname -m)")
@@ -68,7 +78,6 @@ if [ "$GITHUBVERSION" -gt "$CURRENTVERSION" ]; then
       fi
 fi
 # Nextcloud version check
-function version_gt() { local v1 v2 IFS=.; read -ra v1 <<< "$1"; read -ra v2 <<< "$2"; printf -v v1 %03d "${v1[@]}"; printf -v v2 %03d "${v2[@]}"; [[ $v1 > $v2 ]]; }
 if version_gt "$NCVERSION" "$CURRENTVERSIONNC"
 then
   echo -e "$COLOR_LIGHT_GREEN Nextcloud update available, run: sudo bash $SCRIPTS/update.sh $COLOR_DEFAULT"

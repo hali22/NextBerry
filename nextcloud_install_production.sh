@@ -313,6 +313,7 @@ check_command sudo -u www-data php occ maintenance:install \
 echo
 echo "Nextcloud version:"
 sudo -u www-data php "$NCPATH"/occ status
+sudo -u www-data php /var/www/nextcloud/occ status | grep "versionstring" | awk '{print $3}' > "$SCRIPTS/.versionnc"
 sleep 3
 echo
 
