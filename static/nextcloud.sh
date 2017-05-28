@@ -1,5 +1,11 @@
 #!/bin/bash
 # Tech and Me © - 2017, https://www.techandme.se/
+upSeconds="$(/usr/bin/cut -d. -f1 /proc/uptime)"
+secs=$((${upSeconds}%60))
+mins=$((${upSeconds}/60%60))
+hours=$((${upSeconds}/3600%24))
+days=$((${upSeconds}/86400))
+UPTIME=$(printf "%d days, %02dh%02dm%02ds" "$days" "$hours" "$mins" "$secs")
 REPO="https://raw.githubusercontent.com/techandme/NextBerry/master/"
 CURRENTVERSION=$(sed '1q;d' /var/scripts/.version-nc)
 CLEANVERSION=$(sed '2q;d' /var/scripts/.version-nc)
@@ -26,7 +32,7 @@ COLOR_DEFAULT='\033[0m'
 OS=$(printf "Operating system: %s (%s %s %s)\n" "$RELEASE" "$(uname -o)" "$(uname -r)" "$(uname -m)")
 clear
 echo -e "$COLOR_WHITE $($FIGLET -ckw 80 -f small NextBerry "$CLEANVERSION") $COLOR_DEFAULT"
-echo -e "$COLOR_WHITE https://www.techandme.se                Uptime: $BIN_UPTIME $COLOR_DEFAULT"
+echo -e "$COLOR_WHITE https://www.techandme.se - Nextcloud:v$CURRENTVERSIONNC - Uptime: $UPTIME $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE =============================================================================== $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE RPI: $TEMP - CPU freq: $CPUFREQ - $COREVOLT - MEM: $MEMGPU $MEMARM $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE =============================================================================== $COLOR_DEFAULT"

@@ -27,12 +27,8 @@ fi
 
 # Get packages to be able to install Redis
 "$APT" update -q4 & spinner_loading
-"$APT" install -q -y \
-    build-essential \
-    tcl8.5 \
-"$APT" -t stretch -y \
-    php-dev \
-    php-pear
+"$APT" install -q -y build-essential tcl8.5
+"$APT" install -y -t stretch --no-install-recommends php-pear php-dev
 
 # Install PHPmodule
 if ! pecl install -Z redis
