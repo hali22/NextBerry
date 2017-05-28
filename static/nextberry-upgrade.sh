@@ -130,8 +130,10 @@ mv $SCRIPTS/wireless.sh /usr/sbin/wireless
 chmod +x /usr/sbin/wireless
 
 # Rpi config
-echo "vcgencmd get_config int" > /usr/sbin/rpi-conf
+echo "CONF=$(vcgencmd get_config int)" > /usr/sbin/rpi-conf
+echo "whiptail --msgbox "$CONF" --scrolltext --title "RPI config" "$WT_HEIGHT" "$WT_WIDTH"" >> /usr/sbin/rpi-conf
 
+echo " "
 # Set what version is installed
 echo "12 applied" >> "$VERSIONFILE"
 # Change current version var
@@ -146,6 +148,9 @@ fi
 if grep -q "13 applied" "$VERSIONFILE"; then
   echo "13 already applied..."
 else
+
+# Fix permissions
+chmod +x /usr/sbin/rpi-conf
 
 # Set what version is installed
 echo "13 applied" >> "$VERSIONFILE"
