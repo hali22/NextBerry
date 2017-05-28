@@ -268,6 +268,7 @@ bash "$SECURE"
 
 # Repair
 sudo -u www-data php "$NCPATH"/occ maintenance:repair
+sudo -u www-data php "$NCPATH"/occ status | grep "versionstring" | awk '{print $3}' > "$SCRIPTS/.versionnc"
 
 CURRENTVERSION_after=$(sudo -u www-data php "$NCPATH"/occ status | grep "versionstring" | awk '{print $3}')
 if [[ "$NCVERSION" == "$CURRENTVERSION_after" ]]

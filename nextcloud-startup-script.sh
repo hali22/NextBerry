@@ -440,8 +440,6 @@ cat << RCLOCAL > "/etc/rc.local"
 #
 # By default this script does nothing.
 
-sudo -u www-data php /var/www/nextcloud/occ status | grep "versionstring" | awk '{print $3}' > "$SCRIPTS/.versionnc"
-
 exit 0
 
 RCLOCAL
@@ -481,7 +479,7 @@ bash "$SCRIPTS"/trusted.sh
 rm -f "$SCRIPTS"/trusted.sh
 
 # Prefer IPv6
-sed -i "s|precedence ::ffff:0:0/96  100|#precedence ::ffff:0:0/96  100|g" /etc/gai.conf
+#sed -i "s|precedence ::ffff:0:0/96  100|#precedence ::ffff:0:0/96  100|g" /etc/gai.conf
 
 # Remove MySQL pass from log files
 grep "password" $MYCNF > /root/.tmp
@@ -491,11 +489,24 @@ PW=$(cat /root/.tmp)
 sed -i "s|$PW|XXX-SQL-PASS-XXX|g" "$SCRIPTS"/logs
 rm /root/.tmp
 
+# Http to https
+cat << SED > "/tmp/sed"
+/RewriteEngine on/{i\
+RewriteEngine on\
+  RewriteCond %{HTTPS} off\
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+d
+}
+SED
+sed -f /tmp/sed "$NCPATH"/.htaccess
+
 # Log file
-echo "pastebinit -i $SCRIPTS/logs -a nextcloud_installation_$DATE -b paste.ubuntu.com > $SCRIPTS/.pastebinit" > /usr/sbin/install-log
+echo "pastebinit -i $SCRIPTS/logs -a nextberry_$DATE -b paste.ubuntu.com > $SCRIPTS/.pastebinit" > /usr/sbin/install-log
 echo "clear" >> /usr/sbin/install-log
 echo "exec $SCRIPTS/nextcloud.sh" >> /usr/sbin/install-log
 chmod 750 /usr/sbin/install-log
+chown ncadmin "$SCRIPTS/logs"
+chmod 750 "$SCRIPTS/logs"
 
 # Reboot
 rm -f "$SCRIPTS/nextcloud-startup-script.sh"

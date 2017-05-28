@@ -65,8 +65,7 @@ if grep -q "11 applied" "$VERSIONFILE"; then
 else
 
   # Actual version additions
-  apt-get install -y  build-essential \
-                  lm-sensors
+  "$APT" install -y  build-essential lm-sensors
 
   # NCDU
   echo "sudo ncdu /" > /usr/sbin/fs-size
@@ -86,7 +85,7 @@ else
 
 # Unattended-upgrades
 # Install packages
-DEBIAN_FRONTEND=noninteractive apt-get install -y unattended-upgrades \
+DEBIAN_FRONTEND=noninteractive "$APT" install -y unattended-upgrades \
                                                 update-notifier-common
 
 # Set apt-get config
@@ -112,7 +111,7 @@ fi
 
 # New wifi setup
 sudo usermod -aG netdev ncadmin
-DEBIAN_FRONTEND=noninteractive apt-get install -y wicd-curses
+DEBIAN_FRONTEND=noninteractive "$APT" install -y wicd-curses
 
 if [ -f $SCRIPTS/wireless.sh ] ;then
     rm $SCRIPTS/wireless.sh

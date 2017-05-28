@@ -83,7 +83,8 @@ if ! grep -Fxq "vm.overcommit_memory = 1" /etc/sysctl.conf
 then
     echo 'vm.overcommit_memory = 1' >> /etc/sysctl.conf
 fi
-sed -i "s|# unixsocket /var/run/redis/redis.sock|unixsocket $REDIS_SOCK|g" $REDIS_CONF
+#sed -i "s|# unixsocket /var/run/redis/redis.sock|unixsocket $REDIS_SOCK|g" $REDIS_CONF
+echo "unixsocket $REDIS_SOCK" >> $REDIS_CONF
 sed -i "s|# unixsocketperm 700|unixsocketperm 777|g" $REDIS_CONF
 sed -i "s|port 6379|port 0|g" $REDIS_CONF
 sed -i "s|# requirepass foobared|requirepass $REDIS_PASS|g" $REDIS_CONF
@@ -94,10 +95,6 @@ chown redis:root /etc/redis/redis.conf
 chmod 600 /etc/redis/redis.conf
 
 # Cleanup
-"$APT" purge -y \
-    git \
-    build-essential*
-
 "$APT" update -q4 & spinner_loading
 "$APT" autoremove -y
 "$APT" autoclean
