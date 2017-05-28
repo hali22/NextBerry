@@ -131,7 +131,7 @@ chmod +x /usr/sbin/wireless
 
 # Rpi config
 echo "CONF=$(vcgencmd get_config int)" > /usr/sbin/rpi-conf
-echo "whiptail --msgbox $CONF --scrolltext --title "RPI config" $WT_HEIGHT $WT_WIDTH >> /usr/sbin/rpi-conf
+echo "whiptail --msgbox $CONF --scrolltext --title "RPI config" $WT_HEIGHT $WT_WIDTH" >> /usr/sbin/rpi-conf
 
 echo " "
 # Set what version is installed
