@@ -6,7 +6,7 @@ calc_wt_size() {
   WT_HEIGHT=17
   WT_WIDTH=$(tput cols)
 
-  if [ -z "$WT_WIDTH" ] || [ "$WT_WIDTH" -lt 60 ]; then
+  if [ -z "$WT_WIDTH" ] || [ "$WT_WIDTH" -lt 60 ];
     WT_WIDTH=80
   fi
   if [ "$WT_WIDTH" -gt 178 ]; then
@@ -16,3 +16,4 @@ calc_wt_size() {
 }
 
 whiptail --msgbox "$FW" --scrolltext --title "Firewall rules" "$WT_HEIGHT" "$WT_WIDTH"
+exec /var/scripts/nextcloud.sh

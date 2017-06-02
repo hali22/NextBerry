@@ -508,6 +508,9 @@ chmod 750 /usr/sbin/install-log
 chown ncadmin "$SCRIPTS/logs"
 chmod 750 "$SCRIPTS/logs"
 
+# Clear log with please waits
+sed -i "/Please wait.../d" "$SCRIPTS/.pastebinit"
+
 # Reboot
 rm -f "$SCRIPTS/nextcloud-startup-script.sh"
 any_key "Installation finished, press any key to reboot system..."
