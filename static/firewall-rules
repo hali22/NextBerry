@@ -16,3 +16,4 @@ calc_wt_size() {
 }
 
 whiptail --msgbox "$FW" --scrolltext --title "Firewall rules" "$WT_HEIGHT" "$WT_WIDTH"
+exec /var/scripts/nextcloud.sh

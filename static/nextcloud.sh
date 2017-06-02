@@ -37,6 +37,8 @@ HTML=/var/www
 NCREPO="https://download.nextcloud.com/server/releases"
 CURRENTVERSIONNC=$(cat $SCRIPTS/.versionnc)
 NCVERSION=$(curl -s -m 900 $NCREPO/ | sed --silent 's/.*href="nextcloud-\([^"]\+\).zip.asc".*/\1/p' | sort --version-sort | tail -1)
+COLOR_PURPLE='\e[1;95m'
+COLOR_CYAN='\e[1;96m'
 COLOR_WHITE='\033[1;37m'
 COLOR_DEFAULT='\033[0m'
 OS=$(printf "Operating system: %s (%s %s %s)\n" "$RELEASE" "$(uname -o)" "$(uname -r)" "$(uname -m)")
@@ -48,20 +50,21 @@ echo -e "$COLOR_WHITE RPI: $TEMP - CPU freq: $CPUFREQ - $COREVOLT - MEM: $MEMGPU
 echo -e "$COLOR_WHITE =============================================================================== $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE $OS $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE =============================================================================== $COLOR_DEFAULT"
-echo -e "$COLOR_WHITE WAN IPv4: $WANIP4 - WAN IPv6: $WANIP6 $COLOR_DEFAULT"
-echo -e "$COLOR_WHITE LAN IPv4: $ADDRESS $COLOR_DEFAULT"
+echo -e "$COLOR_WHITE WAN IPv4: $COLOR_PURPLE$WANIP4 $COLOR_WHITE- WAN IPv6: $COLOR_WHITE$WANIP6 $COLOR_DEFAULT"
+echo -e "$COLOR_WHITE LAN IPv4: $COLOR_PURPLE$ADDRESS $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE =============================================================================== $COLOR_DEFAULT"
-echo -e "$COLOR_WHITE To upload your installation log, type:        sudo install-log $COLOR_DEFAULT"
-echo -e "$COLOR_WHITE To view your firewall rules, type:            sudo firewall-rules $COLOR_DEFAULT"
-echo -e "$COLOR_WHITE To connect to a wifi network, type:           sudo wireless $COLOR_DEFAULT"
-echo -e "$COLOR_WHITE To view RPI config settings, type:            sudo rpi-conf $COLOR_DEFAULT"
-echo -e "$COLOR_WHITE To monitor your system, type:                 sudo htop $COLOR_DEFAULT"
-echo -e "$COLOR_WHITE                                               sudo fs-size $COLOR_DEFAULT"
+echo -e "$COLOR_WHITE To upload your installation log, type:        $COLOR_PURPLE sudo install-log $COLOR_DEFAULT"
+echo -e "$COLOR_WHITE To view your firewall rules, type:            $COLOR_PURPLE sudo firewall-rules $COLOR_DEFAULT"
+echo -e "$COLOR_WHITE To connect to a wifi network, type:           $COLOR_PURPLE sudo wireless $COLOR_DEFAULT"
+echo -e "$COLOR_WHITE To view RPI config settings, type:            $COLOR_PURPLE sudo rpi-conf $COLOR_DEFAULT"
+echo -e "$COLOR_WHITE To monitor your system, type:                 $COLOR_PURPLE sudo htop $COLOR_DEFAULT"
+echo -e "$COLOR_WHITE                                               $COLOR_PURPLE sudo fs-size $COLOR_DEFAULT"
 # Log file check
 if [ -f $SCRIPTS/.pastebinit ];	then
   INSLOG=$(cat $SCRIPTS/.pastebinit)
   echo -e "$COLOR_WHITE =============================================================================== $COLOR_DEFAULT"
-  echo -e "$COLOR_WHITE Your installation log: $INSLOG $COLOR_DEFAULT"
+  echo -e "$COLOR_CYAN Your installation log: $INSLOG $COLOR_DEFAULT"
+  echo -e "$COLOR_WHITE To remove this notification: sudo rm $SCRIPTS/.pastebinit"
 fi
 echo -e "$COLOR_WHITE =============================================================================== $COLOR_DEFAULT"
 # NextBerry version check
