@@ -151,6 +151,18 @@ else
 # Fix permissions
 chmod +x /usr/sbin/rpi-conf
 
+# Https background Fix
+if grep -q "RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]" "/var/www/nextcloud/.htaccess"; then
+  sed -i 's|  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]|#  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]|g' /var/www/nextcloud/.htaccess
+fi
+
+if grep -q "RewriteCond %{HTTPS} off" "/var/www/nextcloud/.htaccess"; then
+  sed -i 's|  RewriteCond %{HTTPS} off|#  RewriteCond %{HTTPS} off|g' /var/www/nextcloud/.htaccess
+fi
+
+# Clear log with please waits
+sed -i "/Please wait.../d" "$SCRIPTS/.pastebinit"
+
 # Set what version is installed
 echo "13 applied" >> "$VERSIONFILE"
 # Change current version var
