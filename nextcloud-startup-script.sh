@@ -304,6 +304,7 @@ else
     echo "OK, but if you want to run it later, just type: sudo bash $SCRIPTS/activate-ssl.sh"
     any_key "Press any key to continue..."
 fi
+cd
 clear
 
 whiptail --title "Which apps do you want to install?" --checklist --separate-output "Automatically configure and install selected apps\nSelect by pressing the spacebar" "$WT_HEIGHT" "$WT_WIDTH" 4 \

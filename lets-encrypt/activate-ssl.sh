@@ -148,11 +148,10 @@ then
     letsencrypt --version
 else
     echo "Installing letsencrypt..."
-    add-apt-repository ppa:certbot/certbot -y
-    apt update -q4 & spinner_loading
-    apt install letsencrypt -y -q
-    apt update -q4 & spinner_loading
-    apt dist-upgrade -y
+    "$APT" install git -y
+    cd /etc
+    git clone https://github.com/certbot/certbot.git
+    cd certbot
 fi
 
 #Fix issue #28
@@ -229,7 +228,7 @@ standalone() {
 a2dissite 000-default.conf
 sudo service apache2 stop
 # Generate certs
-eval "letsencrypt certonly --standalone $default_le"
+eval "./letsencrypt-auto certonly --standalone $default_le"
 if [ "$?" -eq 0 ]; then
     echo "success" > /tmp/le_test
 else
@@ -241,7 +240,7 @@ a2ensite 000-default.conf
 service apache2 reload
 }
 webroot() {
-eval "letsencrypt certonly --webroot --webroot-path $NCPATH $default_le"
+eval "./letsencrypt-auto certonly --webroot --webroot-path $NCPATH $default_le"
 if [ "$?" -eq 0 ]; then
     echo "success" > /tmp/le_test
 else
@@ -249,7 +248,7 @@ else
 fi
 }
 certonly() {
-eval "letsencrypt certonly $default_le"
+eval "./letsencrypt-auto certonly $default_le"
 if [ "$?" -eq 0 ]; then
     echo "success" > /tmp/le_test
 else
@@ -322,7 +321,5 @@ cat << ENDMSG
 ENDMSG
 any_key "Press any key to revert settings and exit... "
 
-# Cleanup
-apt remove letsencrypt -y
-apt autoremove -y
+cd
 clear
