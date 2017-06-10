@@ -408,6 +408,10 @@ then
     SetEnv HOME $NCPATH
     SetEnv HTTP_HOME $NCPATH
 
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
 </VirtualHost>
 HTTP_CREATE
     echo "$HTTP_CONF was successfully created"
