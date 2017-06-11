@@ -11,6 +11,8 @@
 ## Current [maintainers](https://github.com/nextcloud/vm/graphs/contributors)
 * [Daniel Hanson](https://github.com/enoch85) @ [Tech and Me](https://www.techandme.se)
 * [Ezra Holm](https://github.com/ezraholm50) @ [Tech and Me](https://www.techandme.se)
+* [Luis Guzman](https://github.com/Ark74) @ [SwITNet](https://switnet.net)
+* [Stefan Heitmüller](https://github.com/morph027) @ [morph027's Blog](https://morph027.gitlab.io/)
 * You? :)
 
 ## Image
