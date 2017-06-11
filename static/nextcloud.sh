@@ -55,12 +55,16 @@ echo -e "$COLOR_WHITE ==========================================================
 echo -e "$COLOR_WHITE WAN IPv4: $COLOR_PURPLE$WANIP4 $COLOR_WHITE- WAN IPv6: $COLOR_WHITE$WANIP6 $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE LAN IPv4: $COLOR_PURPLE$ADDRESS $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE =============================================================================== $COLOR_DEFAULT"
+if [ -f $SCRIPTS/.menu ];	then
 echo -e "$COLOR_WHITE To upload your installation log, type:        $COLOR_PURPLE sudo install-log $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE To view your firewall rules, type:            $COLOR_PURPLE sudo firewall-rules $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE To connect to a wifi network, type:           $COLOR_PURPLE sudo wireless $COLOR_DEFAULT"
+echo -e "$COLOR_WHITE To auto install Letsencrypt certs, type:      $COLOR_PURPLE sudo activate-ssl $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE To view RPI config settings, type:            $COLOR_PURPLE sudo rpi-conf $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE To monitor your system, type:                 $COLOR_PURPLE sudo htop $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE                                               $COLOR_PURPLE sudo fs-size $COLOR_DEFAULT"
+fi
+echo -e "$COLOR_WHITE Toggle this menu on and of:                   $COLOR_PURPLE sudo menu-toggle $COLOR_DEFAULT"
 # Log file check
 if [ -f $SCRIPTS/.pastebinit ];	then
   INSLOG=$(cat $SCRIPTS/.pastebinit)
