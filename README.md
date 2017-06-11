@@ -17,7 +17,6 @@
 
 ## Image
 * [Image link](https://github.com/techandme/NextBerry/releases/tag/Images)
-* [Image mirror](https://cloud.techandme.se/s/G6PaI0miBibhDwj)
 
 ## Documentation
 [How to](https://github.com/techandme/NextBerry/wiki)

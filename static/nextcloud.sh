@@ -63,6 +63,7 @@ echo -e "$COLOR_WHITE To auto install Letsencrypt certs, type:      $COLOR_PURPL
 echo -e "$COLOR_WHITE To view RPI config settings, type:            $COLOR_PURPLE sudo rpi-conf $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE To monitor your system, type:                 $COLOR_PURPLE sudo htop $COLOR_DEFAULT"
 echo -e "$COLOR_WHITE                                               $COLOR_PURPLE sudo fs-size $COLOR_DEFAULT"
+echo -e "$COLOR_WHITE To view advanced config, type:                $COLOR_PURPLE sudo raspi-config $COLOR_DEFAULT"
 fi
 echo -e "$COLOR_WHITE Toggle this menu on and of:                   $COLOR_PURPLE sudo menu-toggle $COLOR_DEFAULT"
 # Log file check

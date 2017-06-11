@@ -484,10 +484,6 @@ PW=$(cat /root/.tmp)
 sed -i "s|$PW|XXX-SQL-PASS-XXX|g" "$SCRIPTS"/logs
 rm /root/.tmp
 
-# Make sure 000-default is disabled
-a2dissite 000-default.conf
-service apache2 restart
-
 # Log file
 echo "pastebinit -i $SCRIPTS/logs -a nextberry_$DATE -b paste.ubuntu.com > $SCRIPTS/.pastebinit" > /usr/sbin/install-log
 echo "clear" >> /usr/sbin/install-log
@@ -495,22 +491,6 @@ echo "exec $SCRIPTS/nextcloud.sh" >> /usr/sbin/install-log
 chmod 750 /usr/sbin/install-log
 chown ncadmin "$SCRIPTS/logs"
 chmod 750 "$SCRIPTS/logs"
-
-# Activate ssl in menu
-echo "exec sudo $SCRIPTS/activate-ssl.sh" > /usr/sbin/activate-ssl
-chmod +x /usr/sbin/activate-ssl
-
-# Menu toggle
-cat << TOGGLE > "/usr/sbin/menu-toggle"
-if [ -f "$SCRIPTS"/.menu ]
-then
-  rm "$SCRIPTS"/.menu
-else
-  touch "$SCRIPTS"/.menu
-fi
-exec "$SCRIPTS"/nextcloud.sh
-TOGGLE
-chmod +x /usr/sbin/menu-toggle
 
 # Reboot
 any_key "Installation finished, press any key to reboot system..."
