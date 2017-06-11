@@ -75,6 +75,10 @@ NCMAJOR="${NCVERSION%%.*}"
 NCBAD=$((NCMAJOR-2))
 # Keys
 OpenPGP_fingerprint='28806A878AE423A28372792ED75899B9A724937A'
+# OnlyOffice URL
+[ ! -z "$OO_INSTALL" ] && SUBDOMAIN=$(whiptail --title "Techandme.se OnlyOffice" --inputbox "OnlyOffice subdomain eg: office.yourdomain.com" "$WT_HEIGHT" "$WT_WIDTH" 3>&1 1>&2 2>&3)
+# Nextcloud Main Domain
+[ ! -z "$OO_INSTALL" ] && NCDOMAIN=$(whiptail --title "Techandme.se OnlyOffice" --inputbox "Nextcloud url, make sure it looks like this: cloud\\.yourdomain\\.com" "$WT_HEIGHT" "$WT_WIDTH" cloud\\.yourdomain\\.com 3>&1 1>&2 2>&3)
 # Collabora Docker URL
 [ ! -z "$COLLABORA_INSTALL" ] && SUBDOMAIN=$(whiptail --title "Techandme.se Collabora" --inputbox "Collabora subdomain eg: office.yourdomain.com" "$WT_HEIGHT" "$WT_WIDTH" 3>&1 1>&2 2>&3)
 # Nextcloud Main Domain
@@ -176,6 +180,38 @@ ask_yes_or_no() {
     esac
 }
 
+# Test RAM size 
+# Call it like this: ram_check [amount of min RAM in GB] [for which program]
+# Example: ram_check 2 Nextcloud
+ram_check() {
+mem_available="$(awk '/MemTotal/{print $2}' /proc/meminfo)"
+if [ "${mem_available}" -lt "$((${1}*1002400))" ]
+then
+    printf "${Red}Error: ${1} GB RAM required to install ${2}!${Color_Off}\n" >&2
+    printf "${Red}Current RAM is: ("$((mem_available/1002400))" GB)${Color_Off}\n" >&2
+    sleep 3
+    exit 1
+else
+    printf "${Green}RAM for ${2} OK! ("$((mem_available/1002400))" GB)${Color_Off}\n"
+fi
+}
+
+# Test number of CPU
+# Call it like this: cpu_check [amount of min CPU] [for which program]
+# Example: cpu_check 2 Nextcloud
+cpu_check() {
+nr_cpu="$(nproc)"
+if [ "${nr_cpu}" -lt "${1}" ]
+then
+    printf "${Red}Error: ${1} CPU required to install ${2}!${Color_Off}\n" >&2
+    printf "${Red}Current CPU: ("$((nr_cpu))")${Color_Off}\n" >&2
+    sleep 3
+    exit 1
+else
+    printf "${Green}CPU for ${2} OK! ("$((nr_cpu))")${Color_Off}\n"
+fi
+}
+
 check_command() {
   eval "$*"
   if [ ! $? -eq 0 ]; then
@@ -246,6 +282,29 @@ download_le_script() {
         echo "If you get this error when running the nextcloud-startup-script then just re-run it with:"
         echo "'sudo bash $SCRIPTS/nextcloud-startup-script.sh' and all the scripts will be downloaded again"
         exit 1
+    fi
+}
+
+# Run any script in ../master
+# call like: run_main_script name_of_script
+run_main_script() {
+    rm -f "${SCRIPTS}/${1}.sh" "${SCRIPTS}/${1}.php" "${SCRIPTS}/${1}.py"
+    if wget -q "${GITHUB_REPO}/${1}.sh" -P "$SCRIPTS"
+    then
+        bash "${SCRIPTS}/${1}.sh"
+        rm -f "${SCRIPTS}/${1}.sh"
+    elif wget -q "${GITHUB_REPO}/${1}.php" -P "$SCRIPTS"
+    then
+        php "${SCRIPTS}/${1}.php"
+        rm -f "${SCRIPTS}/${1}.php"
+    elif wget -q "${GITHUB_REPO}/${1}.py" -P "$SCRIPTS"
+    then
+        python "${SCRIPTS}/${1}.py"
+        rm -f "${SCRIPTS}/${1}.py"
+    else
+        echo "Downloading ${1} failed"
+        echo "Script failed to download. Please run: 'sudo wget ${GITHUB_REPO}/${1}.sh|php|py' again."
+        sleep 3
     fi
 }
 

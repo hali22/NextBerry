@@ -236,8 +236,6 @@ else
 fi
 # Activate Apache again (Disabled during standalone)
 service apache2 start
-a2ensite 000-default.conf
-service apache2 reload
 }
 webroot() {
 eval "./letsencrypt-auto certonly --webroot --webroot-path $NCPATH $default_le"

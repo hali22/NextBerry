@@ -331,6 +331,9 @@ sed -i "s|post_max_size = 8M|post_max_size = 1100M|g" /etc/php/7.0/apache2/php.i
 # upload_max
 sed -i "s|upload_max_filesize = 2M|upload_max_filesize = 1000M|g" /etc/php/7.0/apache2/php.ini
 
+# Set SMTP mail
+sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtpmode --value="smtp"
+
 # Increase max filesize (expects that changes are made in /etc/php/7.0/apache2/php.ini)
 # Here is a guide: https://www.techandme.se/increase-max-file-size/
 VALUE="# php_value upload_max_filesize 511M"
@@ -466,21 +469,6 @@ a2ensite nextcloud_ssl_domain_self_signed.conf
 a2ensite nextcloud_http_domain_self_signed.conf
 a2dissite default-ssl
 service apache2 restart
-
-## Set config values
-# Experimental apps
-sudo -u www-data php "$NCPATH"/occ config:system:set appstore.experimental.enabled --value="true"
-# Default mail server as an example (make this user configurable?)
-sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtpmode --value="smtp"
-sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtpauth --value="1"
-sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtpport --value="465"
-sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtphost --value="smtp.gmail.com"
-sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtpauthtype --value="LOGIN"
-sudo -u www-data php "$NCPATH"/occ config:system:set mail_from_address --value="www.techandme.se"
-sudo -u www-data php "$NCPATH"/occ config:system:set mail_domain --value="gmail.com"
-sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtpsecure --value="ssl"
-sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtpname --value="www.techandme.se@gmail.com"
-sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtppassword --value="vinr vhpa jvbh hovy"
 
 # Install Libreoffice Writer to be able to read MS documents.
 sudo "$APT" install --no-install-recommends libreoffice-writer -y
