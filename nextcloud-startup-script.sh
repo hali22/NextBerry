@@ -490,16 +490,9 @@ PW=$(cat /root/.tmp)
 sed -i "s|$PW|XXX-SQL-PASS-XXX|g" "$SCRIPTS"/logs
 rm /root/.tmp
 
-# Http to https
-#cat << SED > "/tmp/sed"
-#/RewriteEngine on/{i\
-#RewriteEngine on\
-#  RewriteCond %{HTTPS} off\
-#  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-#d
-#}
-#SED
-#sed -f /tmp/sed "$NCPATH"/.htaccess
+# Make sure 000-default is disabled
+a2dissite 000-default.conf
+service apache2 restart
 
 # Log file
 echo "pastebinit -i $SCRIPTS/logs -a nextberry_$DATE -b paste.ubuntu.com > $SCRIPTS/.pastebinit" > /usr/sbin/install-log
