@@ -167,9 +167,51 @@ echo "13 applied" >> "$VERSIONFILE"
 # Change current version var
 sed -i 's|012|013|g' "$VERSIONFILE"
 sed -i 's|V1.2|V1.3|g' "$VERSIONFILE"
-
-# Done - Move this line to the new release on every new version.
-whiptail --msgbox "Successfully installed V1.3, please manually reboot..." 10 65
 fi
 
+################### V1.4 ####################
+if grep -q "14 applied" "$VERSIONFILE"; then
+  echo "14 already applied..."
+else
+
+  # New login screen
+  if [ ! -f "$SCRIPTS/nextcloud.sh" ]
+  then
+    rm "$SCRIPTS"/nextcloud.sh
+    wget -q "$STATIC"/nextcloud.sh -P "$SCRIPTS"
+    chmod +x "$STATIC"/nextcloud.sh
+  else
+    wget -q "$STATIC"/nextcloud.sh -P "$SCRIPTS"
+    chmod +x "$STATIC"/nextcloud.sh
+  fi
+
+  # Activate ssl in menu
+  echo "exec sudo $SCRIPTS/activate-ssl.sh" > /usr/sbin/activate-ssl
+  chmod +x /usr/sbin/activate-ssl
+
+  # Menu toggle
+  cat << TOGGLE > "/usr/sbin/menu-toggle"
+  if [ -f "$SCRIPTS"/.menu ]
+  then
+    rm "$SCRIPTS"/.menu
+  else
+    touch "$SCRIPTS"/.menu
+  fi
+  exec "$SCRIPTS"/nextcloud.sh
+  TOGGLE
+  chmod +x /usr/sbin/menu-toggle
+
+  # Make sure 000-default is disabled
+  a2dissite 000-default.conf
+  service apache2 restart
+
+  # Set what version is installed
+  echo "14 applied" >> "$VERSIONFILE"
+  # Change current version var
+  sed -i 's|013|014|g' "$VERSIONFILE"
+  sed -i 's|V1.3|V1.4|g' "$VERSIONFILE"
+
+  # Done - Move this line to the new release on every new version.
+  whiptail --msgbox "Successfully installed V1.3, please manually reboot..." 10 65
+fi
 exit

@@ -35,7 +35,7 @@ fi
 whiptail --msgbox "Please before you start, make sure that port 443 is directly forwarded to this machine!" "$WT_HEIGHT" "$WT_WIDTH"
 
 # Get the latest packages
-apt update -q4 & spinner_loading
+"$APT" update -q4 & spinner_loading
 
 # Check if Nextcloud is installed
 echo "Checking if Nextcloud is installed..."
