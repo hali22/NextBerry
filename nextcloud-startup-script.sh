@@ -181,21 +181,8 @@ download_static_script nextberry-upgrade
 download_static_script nextcloud
 download_static_script update-config
 download_static_script index
+download_le_script activate-ssl
 
-# Lets Encrypt
-if [ -f "$SCRIPTS"/activate-ssl.sh ]
-then
-    rm "$SCRIPTS"/activate-ssl.sh
-    wget -q "$LETS_ENC"/activate-ssl.sh -P "$SCRIPTS"
-else
-    wget -q "$LETS_ENC"/activate-ssl.sh -P "$SCRIPTS"
-fi
-if [ ! -f "$SCRIPTS"/activate-ssl.sh ]
-then
-    echo "activate-ssl failed"
-    echo "Script failed to download. Please run: 'sudo bash $SCRIPTS/nextcloud-startup-script.sh' again."
-    exit 1
-fi
 
 mv "$SCRIPTS"/index.php $HTML/index.php && rm -f $HTML/html/index.html
 chmod 750 $HTML/index.php && chown www-data:www-data $HTML/index.php
@@ -309,7 +296,8 @@ clear
 
 whiptail --title "Which apps do you want to install?" --checklist --separate-output "Automatically configure and install selected apps\nSelect by pressing the spacebar" "$WT_HEIGHT" "$WT_WIDTH" 4 \
 "phpMyadmin" "(MySQL GUI)       " OFF \
-"Collabora" "(Online editing)   " OFF \
+"Collabora" "(Online editing 2GB RAM)   " OFF \
+"OnlyOffice" "(Online editing 4GB RAM)   " OFF \
 "Nextant" "(Full text search)   " OFF \
 "Passman" "(Password storage)   " OFF \
 "Spreed.ME" "(Video calls)      " OFF 2>results
@@ -319,6 +307,9 @@ do
     case $choice in
         phpMyadmin)
             run_app_script phpmyadmin_install_ubuntu16
+        ;;
+        OnlyOffice)
+            run_app_script onlyoffice
         ;;
         Collabora)
             run_app_script collabora
@@ -475,9 +466,12 @@ printf "${Color_Off}\n"
 clear
 
 # Set trusted domain in config.php
-echo "trusted.sh:" >> "$SCRIPTS"/logs
-bash "$SCRIPTS"/trusted.sh
-rm -f "$SCRIPTS"/trusted.sh
+if [ -f "$SCRIPTS"/trusted.sh ]
+then
+    echo "trusted.sh:" >> "$SCRIPTS"/logs
+    bash "$SCRIPTS"/trusted.sh
+    rm -f "$SCRIPTS"/trusted.sh
+fi
 
 # Prefer IPv6
 #sed -i "s|precedence ::ffff:0:0/96  100|#precedence ::ffff:0:0/96  100|g" /etc/gai.conf
@@ -503,6 +497,6 @@ chown ncadmin "$SCRIPTS/logs"
 chmod 750 "$SCRIPTS/logs"
 
 # Reboot
-rm -f "$SCRIPTS/nextcloud-startup-script.sh"
 any_key "Installation finished, press any key to reboot system..."
+rm -f "$SCRIPTS/nextcloud-startup-script.sh"
 reboot
