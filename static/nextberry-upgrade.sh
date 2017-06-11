@@ -190,7 +190,7 @@ else
   chmod +x /usr/sbin/activate-ssl
 
   # Menu toggle
-  cat << TOGGLE > "/usr/sbin/menu-toggle"
+  cat <<- TOGGLE > "/usr/sbin/menu-toggle"
   if [ -f "$SCRIPTS"/.menu ]
   then
     rm "$SCRIPTS"/.menu
@@ -212,6 +212,6 @@ else
   sed -i 's|V1.3|V1.4|g' "$VERSIONFILE"
 
   # Done - Move this line to the new release on every new version.
-  whiptail --msgbox "Successfully installed V1.3, please manually reboot..." 10 65
+  whiptail --msgbox "Successfully installed V1.4, please manually reboot..." 10 65
 fi
 exit
