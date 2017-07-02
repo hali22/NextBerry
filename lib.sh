@@ -13,15 +13,19 @@ NCDATA=/var/ncdata
 SNAPDIR=/var/snap/spreedme
 GPGDIR=/tmp/gpg
 BACKUP=/var/NCBACKUP
+VERSIONFILE="/var/scripts/.version-nc"
 # Ubuntu OS
 DISTRO=$(lsb_release -sd | cut -d ' ' -f 2)
 OS=$(grep -ic "Ubuntu" /etc/issue.net)
+DATE=$(date +%d-%m-%y)
 # Network
+# old IFACE=$(lshw -c network | grep "logical name" | awk '{print $3; exit}')
 [ ! -z "$FIRST_IFACE" ] && IFACE=$(lshw -c network | grep "logical name" | awk '{print $3; exit}')
 IFACE2=$(ip -o link show | awk '{print $2,$9}' | grep 'UP' | cut -d ':' -f 1)
 [ ! -z "$CHECK_CURRENT_REPO" ] && REPO=$(apt-get update | grep -m 1 Hit | awk '{ print $2}')
 ADDRESS=$(hostname -I | cut -d ' ' -f 1)
 WGET="/usr/bin/wget"
+APT="apt-get"
 # WANIP4=$(dig +short myip.opendns.com @resolver1.opendns.com) # as an alternative
 WANIP4=$(curl -s -m 5 ipinfo.io/ip)
 [ ! -z "$LOAD_IP6" ] && WANIP6=$(curl -s -k -m 7 https://6.ifcfg.me)
@@ -29,19 +33,28 @@ IFCONFIG="/sbin/ifconfig"
 INTERFACES="/etc/network/interfaces"
 NETMASK=$($IFCONFIG | grep -w inet |grep -v 127.0.0.1| awk '{print $4}' | cut -d ":" -f 2)
 GATEWAY=$(route -n|grep "UG"|grep -v "UGH"|cut -f 10 -d " ")
+# NextBerry version
+NEXTBERRYVERSION="010" # Needs to be this format for if [ x -gt x ] then...
+NEXTBERRYVERSIONCLEAN="V1.0"
+# Devices
+DEVICE="/dev/mmcblk0"
+DEV="/dev/sda"
+DEVHD="/dev/sda2"
+DEVSP="/dev/sda1"
 # Repo
-GITHUB_REPO="https://raw.githubusercontent.com/nextcloud/vm/master"
+TECHANDTOOL="https://raw.githubusercontent.com/ezraholm50/techandtool/master"
+GITHUB_REPO="https://raw.githubusercontent.com/techandme/NextBerry/master"
 STATIC="$GITHUB_REPO/static"
 LETS_ENC="$GITHUB_REPO/lets-encrypt"
 APP="$GITHUB_REPO/apps"
 NCREPO="https://download.nextcloud.com/server/releases"
-ISSUES="https://github.com/nextcloud/vm/issues"
+ISSUES="https://github.com/techandme/NextBerry/issues"
 # User information
 NCPASS=nextcloud
 NCUSER=ncadmin
 UNIXUSER=$SUDO_USER
-UNIXUSER_PROFILE="/home/$UNIXUSER/.bash_profile"
-ROOT_PROFILE="/root/.bash_profile"
+UNIXUSER_PROFILE="/home/$UNIXUSER/.profile"
+ROOT_PROFILE="/root/.profile"
 # MARIADB
 SHUF=$(shuf -i 25-29 -n 1)
 MARIADB_PASS=$(tr -dc "a-zA-Z0-9@#*=" < /dev/urandom | fold -w "$SHUF" | head -n 1)
@@ -387,7 +400,7 @@ spinner_loading() {
     while kill -0 $pid 2>/dev/null
     do
         i=$(( (i+1) %4 ))
-        printf "\r[${spin:$i:1}] " # Add text here, something like "Please be paitent..." maybe?
+        printf "\r[${spin:$i:1}] Please wait... " # Add text here, something like "Please be paitent..." maybe?
         sleep .1
     done
 }

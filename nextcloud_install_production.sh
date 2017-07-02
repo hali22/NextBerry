@@ -1,16 +1,12 @@
 #!/bin/bash
-
-# Tech and Me © - 2017, https://www.techandme.se/
-
-# Prefer IPv4
-sed -i "s|#precedence ::ffff:0:0/96  100|precedence ::ffff:0:0/96  100|g" /etc/gai.conf
-
-# shellcheck disable=2034,2059
+# shellcheck disable=2034,2059,2140
 true
 # shellcheck source=lib.sh
-FIRST_IFACE=1 && CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/nextcloud/vm/master/lib.sh)
+FIRST_IFACE=1 && CHECK_CURRENT_REPO=1 . <(curl -sL https://raw.githubusercontent.com/techandme/NextBerry/master/lib.sh)
 unset FIRST_IFACE
 unset CHECK_CURRENT_REPO
+
+# Tech and Me © - 2017, https://www.techandme.se/
 
 # Check for errors + debug code and abort if something isn't right
 # 1 = ON
@@ -25,11 +21,18 @@ then
     exit 1
 fi
 
-# Test RAM size (2GB min) + CPUs (min 1)
-ram_check 2 Nextcloud
-cpu_check 1 Nextcloud
+# Erase some dev tracks
+cat /dev/null > /var/log/syslog
+
+# Prefer IPv4
+sed -i "s|#precedence ::ffff:0:0/96  100|precedence ::ffff:0:0/96  100|g" /etc/gai.conf
+
+# Change hostname
+hostnamectl set-hostname nextberry
+sed -i 's|raspberrypi|nextberry localhost nextcloud|g' /etc/hosts
 
 # Show current user
+clear
 echo
 echo "Current user with sudo permissions is: $UNIXUSER".
 echo "This script will set up everything with that user."
@@ -38,21 +41,7 @@ echo "It's possible to install with root, but there will be minor errors."
 echo
 echo "Please create a user with sudo permissions if you want an optimal installation."
 run_static_script adduser
-
-# Check Ubuntu version
-echo "Checking server OS and version..."
-if [ "$OS" != 1 ]
-then
-    echo "Ubuntu Server is required to run this script."
-    echo "Please install that distro and try again."
-    exit 1
-fi
-
-
-if ! version 16.04 "$DISTRO" 16.04.4; then
-    echo "Ubuntu version $DISTRO must be between 16.04 - 16.04.4"
-    exit
-fi
+echo
 
 # Check if key is available
 if ! wget -q -T 10 -t 2 "$NCREPO" > /dev/null
@@ -68,29 +57,102 @@ is_this_installed php
 is_this_installed mysql-common
 is_this_installed mariadb-server
 
+echo "deb http://mirrordirector.raspbian.org/raspbian/ stretch main contrib non-free rpi" >> /etc/apt/sources.list
+
+cat > /etc/apt/preferences <<EOF
+Package: *
+Pin: release n=jessie
+Pin-Priority: 600
+EOF
+
+# Update and upgrade
+clear
+printf "${Cyan}Performing autoclean...${Color_Off}\n\n"
+"$APT" autoclean -q4 & spinner_loading
+printf "Done...\n\n"
+echo
+printf "${Cyan}Performing autoremove...${Color_Off}\n\n"
+"$APT"	autoremove -y -q4 & spinner_loading
+printf "Done...\n\n"
+echo
+printf "${Cyan}Updating system...${Color_Off}\n\n"
+"$APT" update -q4 & spinner_loading
+printf "Done...\n\n"
+echo
+printf "${Cyan}Upgrading system...${Color_Off}\n\n"
+"$APT" upgrade -y -q4 & spinner_loading
+"$APT" dist-upgrade -y -q4 & spinner_loading
+printf "Done...\n\n"
+echo
+printf "${Cyan}Installing missing packages...${Color_Off}\n\n"
+"$APT" install -fy -q4 & spinner_loading
+printf "Done...\n\n"
+echo
+printf "${Cyan}Performing: dpkg configure${Color_Off}\n\n"
+dpkg --configure --pending
+printf "Done...\n\n"
+echo
+printf "${Cyan}Installing additional packages...${Color_Off}\n\n"
+"$APT" install -y htop git ntp ntpdate figlet ufw dnsutils pastebinit
+#libgd3 libwebp5 libc-client2007e libmcrypt4 libpg5 libxslt1.1
+printf "Done...\n\n"
+
+# Enable apps to connect to RPI and read vcgencmd
+usermod -aG video $NCUSER
+
 # Create $SCRIPTS dir
 if [ ! -d "$SCRIPTS" ]
 then
     mkdir -p "$SCRIPTS"
 fi
 
+# Set swap if we're using a HD
+if [ ! -f "$NCUSER/.hd" ]
+then
+  # Only use swap to prevent out of memory. Speed and less tear on SD
+  echo "vm.swappiness = 0" >> /etc/sysctl.conf
+  sysctl -p
+else
+  sed -i 's|#CONF_SWAPFILE=/var/swap|CONF_SWAPFILE=/var/swap|g' /etc/dphys-swapfile
+  sed -i 's|#CONF_SWAPSIZE=100|CONF_SWAPSIZE=1000|g' /etc/dphys-swapfile
+  sed -i 's|#CONF_MAXSWAP=2048|CONF_MAXSWAP=2048|g' /etc/dphys-swapfile
+  /etc/init.d/dphys-swapfile stop
+  /etc/init.d/dphys-swapfile start
+  /etc/init.d/dphys-swapfile swapon
+  echo "vm.swappiness = 10" >> /etc/sysctl.conf
+  sysctl -p
+fi
+
+# Setup firewall-rules
+wget -q "$STATIC/firewall-rules" -P /usr/sbin/
+chmod +x /usr/sbin/firewall-rules
+echo "y" | sudo ufw enable
+ufw default deny incoming
+ufw limit 22/tcp
+ufw allow 80/tcp
+ufw allow 443/tcp
+
+# Set NextBerry version for the updater tool
+echo "$NEXTBERRYVERSION" > "$SCRIPTS"/.version-nc
+echo "$NEXTBERRYVERSIONCLEAN" >> "$SCRIPTS"/.version-nc
+
 # Change DNS
 if ! [ -x "$(command -v resolvconf)" ]
 then
-    apt install resolvconf -y -q
+    "$APT" install resolvconf -y -q
     dpkg-reconfigure resolvconf
 fi
-echo "nameserver 8.8.8.8" > /etc/resolvconf/resolv.conf.d/base
-echo "nameserver 8.8.4.4" >> /etc/resolvconf/resolv.conf.d/base
+echo "nameserver 8.8.8.8" > /etc/resolv.conf.head
+echo "nameserver 8.8.4.4" >> /etc/resolv.conf.head
 
 # Check network
 if ! [ -x "$(command -v nslookup)" ]
 then
-    apt install dnsutils -y -q
+    "$APT" install dnsutils -y -q
 fi
 if ! [ -x "$(command -v ifup)" ]
 then
-    apt install ifupdown -y -q
+    "$APT" install ifupdown -y -q
 fi
 sudo ifdown "$IFACE" && sudo ifup "$IFACE"
 if ! nslookup google.com
@@ -100,31 +162,8 @@ then
 fi
 
 # Set locales
-apt install language-pack-en-base -y
-sudo locale-gen "sv_SE.UTF-8" && sudo dpkg-reconfigure --frontend=noninteractive locales
-
-# Check where the best mirrors are and update
-echo
-printf "Your current server repository is:  ${Cyan}%s${Color_Off}\n" "$REPO"
-if [[ "no" == $(ask_yes_or_no "Do you want to try to find a better mirror?") ]]
-then
-    echo "Keeping $REPO as mirror..."
-    sleep 1
-else
-   echo "Locating the best mirrors..."
-   apt update -q4 & spinner_loading
-   apt install python-pip -y
-   pip install \
-       --upgrade pip \
-       apt-select
-    apt-select -m up-to-date -t 5 -c
-    sudo cp /etc/apt/sources.list /etc/apt/sources.list.backup && \
-    if [ -f sources.list ]
-    then
-        sudo mv sources.list /etc/apt/
-    fi
-fi
-clear
+#"$APT" install language-pack-en-base -y
+sudo locale-gen "en_US.UTF-8" && sudo dpkg-reconfigure --frontend=noninteractive locales
 
 # Set keyboard layout
 echo "Current keyboard layout is $(localectl status | grep "Layout" | awk '{print $3}')"
@@ -137,9 +176,6 @@ else
     dpkg-reconfigure keyboard-configuration
     clear
 fi
-
-# Update system
-apt update -q4 & spinner_loading
 
 # Write MARIADB pass to file and keep it safe
 cat << LOGIN > "$MYCNF"
@@ -173,13 +209,12 @@ chmod 0600 $MYCNF
 chown root:root $MYCNF
 
 # Install MARIADB
-apt install software-properties-common -y
-sudo apt-key adv --recv-keys --keyserver hkp://keyserver.ubuntu.com:80 0xF1656F24C74CD1D8
-sudo add-apt-repository 'deb [arch=amd64,i386,ppc64el] http://ftp.ddg.lth.se/mariadb/repo/10.2/ubuntu xenial main'
+"$APT" install software-properties-common -y
+# add repo, figure this out on rasbian
 sudo debconf-set-selections <<< "mariadb-server-10.2 mysql-server/root_password password $MARIADB_PASS"
 sudo debconf-set-selections <<< "mariadb-server-10.2 mysql-server/root_password_again password $MARIADB_PASS"
-apt update -q4 & spinner_loading
-check_command apt install mariadb-server-10.2 -y
+"$APT" update -q4 & spinner_loading
+check_command "$APT" install mariadb-server-10.2 -y
 
 # Prepare for Nextcloud installation
 # https://blog.v-gar.de/2017/02/en-solved-error-1698-28000-in-mysqlmariadb/
@@ -188,7 +223,7 @@ mysql -u root mysql -p"$MARIADB_PASS" -e "UPDATE user SET password=PASSWORD('$MA
 mysql -u root -p"$MARIADB_PASS" -e "flush privileges;"
 
 # mysql_secure_installation
-apt -y install expect
+aptitude -y install expect
 SECURE_MYSQL=$(expect -c "
 set timeout 10
 spawn mysql_secure_installation
@@ -207,10 +242,10 @@ send \"y\r\"
 expect eof
 ")
 echo "$SECURE_MYSQL"
-apt -y purge expect
+aptitude -y purge expect
 
 # Install Apache
-check_command apt install apache2 -y
+check_command "$APT" install -t stretch apache2 -y
 a2enmod rewrite \
         headers \
         env \
@@ -219,9 +254,11 @@ a2enmod rewrite \
         ssl \
         setenvif
 
+a2dissite 000-default.conf
+
 # Install PHP 7.0
-apt update -q4 & spinner_loading
-check_command apt install -y \
+check_command "$APT" install -t stretch -y \
+    php7.0 \
     libapache2-mod-php7.0 \
     php7.0-common \
     php7.0-mysql \
@@ -238,14 +275,24 @@ check_command apt install -y \
     php7.0-xml \
     php7.0-zip \
     php7.0-mbstring \
-    php-smbclient
+    php7.0-opcache \
+    php7.0-fpm
+
+"$APT" install -y
+    libxml2-dev \
+    php-zip \
+    php-dom \
+    php-xmlwriter \
+    php-xmlreader \
+    php-gd \
+    php-curl \
+    php-mbstring
+
+"$APT" install -y php-smbclient
 
 # Enable SMB client
-# echo '# This enables php-smbclient' >> /etc/php/7.0/apache2/php.ini
-# echo 'extension="smbclient.so"' >> /etc/php/7.0/apache2/php.ini
-
-# Install VM-tools
-apt install open-vm-tools -y
+ echo '# This enables php-smbclient' >> /etc/php/7.0/apache2/php.ini
+ echo 'extension="smbclient.so"' >> /etc/php/7.0/apache2/php.ini
 
 # Download and validate Nextcloud package
 check_command download_verify_nextcloud_stable
@@ -262,7 +309,7 @@ rm "$HTML/$STABLEVERSION.tar.bz2"
 
 # Secure permissions
 download_static_script setup_secure_permissions_nextcloud
-bash $SECURE & spinner_loading
+bash "$SECURE" & spinner_loading
 
 # Create database nextcloud_db
 mysql -u root -p"$MARIADB_PASS" -e "CREATE DATABASE IF NOT EXISTS nextcloud_db;"
@@ -292,7 +339,7 @@ sed -i "s|max_execution_time =.*|max_execution_time = 3500|g" /etc/php/7.0/apach
 # max_input_time
 sed -i "s|max_input_time =.*|max_input_time = 3600|g" /etc/php/7.0/apache2/php.ini
 # memory_limit
-sed -i "s|memory_limit =.*|memory_limit = 512M|g" /etc/php/7.0/apache2/php.ini
+sed -i "s|memory_limit =.*|memory_limit = 256M|g" /etc/php/7.0/apache2/php.ini
 # post_max
 sed -i "s|post_max_size =.*|post_max_size = 1100M|g" /etc/php/7.0/apache2/php.ini
 # upload_max
@@ -304,7 +351,7 @@ configure_max_upload
 # Set SMTP mail
 sudo -u www-data php "$NCPATH"/occ config:system:set mail_smtpmode --value="smtp"
 
-# Enable OPCache for PHP 
+# Enable OPCache for PHP
 # https://docs.nextcloud.com/server/12/admin_manual/configuration_server/server_tuning.html#enable-php-opcache
 phpenmod opcache
 {
@@ -319,11 +366,24 @@ echo "opcache.revalidate_freq=1"
 echo "opcache.validate_timestamps=1"
 } >> /etc/php/7.0/apache2/php.ini
 
+# Enable http2
+cat >/etc/apache2/conf-available/http2.conf <<EOF
+Protocols h2 h2c http/1.1
+H2Push          on
+H2PushPriority  *                       after
+H2PushPriority  text/css                before
+H2PushPriority  image/jpeg              after   32
+H2PushPriority  image/png               after   32
+H2PushPriority  application/javascript  interleaved
+SSLProtocol all -SSLv2 -SSLv3
+SSLHonorCipherOrder on
+SSLCipherSuite 'EECDH+ECDSA+AESGCM EECDH+aRSA+AESGCM EECDH+ECDSA+SHA384 EECDH+ECDSA+SHA256 EECDH+aRSA+SHA384 EECDH+aRSA+SHA256 EECDH+aRSA+RC4 EECDH EDH+aRSA !RC4 !aNULL !eNULL !LOW !3DES !MD5 !EXP !PSK !SRP !DSS'
+EOF
+a2enmod http2
+a2enconf http2
+
 # Install preview generator
 run_app_script previewgenerator
-
-# Install Figlet
-apt install figlet -y
 
 # Generate $HTTP_CONF
 if [ ! -f $HTTP_CONF ]
@@ -359,6 +419,10 @@ then
     SetEnv HOME $NCPATH
     SetEnv HTTP_HOME $NCPATH
 
+    RewriteEngine On
+    RewriteCond %{HTTPS} off
+    RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
 </VirtualHost>
 HTTP_CREATE
     echo "$HTTP_CONF was successfully created"
@@ -370,7 +434,7 @@ then
     touch "$SSL_CONF"
     cat << SSL_CREATE > "$SSL_CONF"
 <VirtualHost *:443>
-    Header add Strict-Transport-Security: "max-age=15768000;includeSubdomains"
+    Header add Strict-Transport-Security: "max-age=15768000; includeSubdomains; preload"
     SSLEngine on
 
 ### YOUR SERVER ADDRESS ###
@@ -414,10 +478,15 @@ a2ensite nextcloud_http_domain_self_signed.conf
 a2dissite default-ssl
 service apache2 restart
 
+# Install Libreoffice Writer to be able to read MS documents.
+sudo "$APT" install --no-install-recommends libreoffice-writer -y
+sudo -u www-data php "$NCPATH"/occ config:system:set preview_libreoffice_path --value="/usr/bin/libreoffice"
+
+# Nextcloud apps
 whiptail --title "Which apps/programs do you want to install?" --checklist --separate-output "" 10 40 3 \
 "Calendar" "              " on \
 "Contacts" "              " on \
-"Webmin" "              " on 2>results
+"Webmin" "              " off 2>results
 
 while read -r -u 9 choice
 do
@@ -456,42 +525,22 @@ check_command run_static_script change-root-profile
 # Install Redis
 run_static_script redis-server-ubuntu16
 
-# Upgrade
-apt update -q4 & spinner_loading
-apt dist-upgrade -y
-
-# Remove LXD (always shows up as failed during boot)
-apt purge lxd -y
+# Cleanup login screen
+cat /dev/null > /etc/motd
 
 # Cleanup
-CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e ''"$(uname -r | cut -f1,2 -d"-")"'' | grep -e '[0-9]' | xargs sudo apt -y purge)
+CLEARBOOT=$(dpkg -l linux-* | awk '/^ii/{ print $2}' | grep -v -e ''"$(uname -r | cut -f1,2 -d"-")"'' | grep -e '[0-9]' | xargs sudo apt-get -y purge)
 echo "$CLEARBOOT"
-apt autoremove -y
-apt autoclean
+"$APT" autoremove -y
+"$APT" autoclean
 find /root "/home/$UNIXUSER" -type f \( -name '*.sh*' -o -name '*.html*' -o -name '*.tar*' -o -name '*.zip*' \) -delete
 
-# Install virtual kernels for Hyper-V, and extra for UTF8 kernel module + Collabora and OnlyOffice
-if [[ "no" == $(ask_yes_or_no "Is this installed on Hyper-V? (4.4 or 4.8 kernel)") ]]
-then
-    # Kernel 4.4
-    apt install --install-recommends -y \
-    linux-virtual-lts-xenial \
-    linux-tools-virtual-lts-xenial \
-    linux-cloud-tools-virtual-lts-xenial \
-    linux-image-virtual-lts-xenial \
-    linux-image-extra-"$(uname -r)"
-else
-    # Kernel 4.8
-    apt install --install-recommends -y \
-    linux-virtual-hwe-16.04 \
-    linux-tools-virtual-hwe-16.04 \
-    linux-cloud-tools-virtual-hwe-16.04 \
-    linux-image-virtual-hwe-16.04 \
-    linux-image-extra-"$(uname -r)"
-fi
-
 # Set secure permissions final (./data/.htaccess has wrong permissions otherwise)
-bash $SECURE & spinner_loading
+bash "$SECURE" & spinner_loading
+
+# Set version
+sudo -u www-data php "$NCPATH"/occ status | grep "versionstring" | awk '{print $3}' > "$SCRIPTS/.versionnc"
+chmod 777 :$SCRIPTS/.versionnc
 
 # Reboot
 echo "Installation done, system will now reboot..."

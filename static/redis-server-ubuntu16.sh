@@ -2,7 +2,7 @@
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
-. <(curl -sL https://raw.githubusercontent.com/nextcloud/vm/master/lib.sh)
+. <(curl -sL https://raw.githubusercontent.com/techandme/NextBerry/master/lib.sh)
 
 # Tech and Me © - 2017, https://www.techandme.se/
 
@@ -19,21 +19,6 @@ then
     exit 1
 fi
 
-# Check Ubuntu version
-echo "Checking server OS and version..."
-if [ "$OS" != 1 ]
-then
-    echo "Ubuntu Server is required to run this script."
-    echo "Please install that distro and try again."
-    exit 1
-fi
-
-
-if ! version 16.04 "$DISTRO" 16.04.4; then
-    echo "Ubuntu version $DISTRO must be between 16.04 - 16.04.4"
-    exit
-fi
-
 # Check if dir exists
 if [ ! -d $SCRIPTS ]
 then
@@ -41,12 +26,9 @@ then
 fi
 
 # Get packages to be able to install Redis
-apt update -q4 & spinner_loading
-sudo apt install -q -y \
-    build-essential \
-    tcl8.5 \
-    php7.0-dev \
-    php-pear
+"$APT" update -q4 & spinner_loading
+"$APT" install -q -y build-essential tcl8.5
+"$APT" install -y -t stretch --no-install-recommends php-pear php-dev
 
 # Install PHPmodule
 if ! pecl install -Z redis
@@ -67,7 +49,7 @@ service apache2 restart
 
 
 # Install Redis
-if ! apt -y install redis-server
+if ! "$APT" -y install redis-server
 then
     echo "Installation failed."
     sleep 3
@@ -101,7 +83,8 @@ if ! grep -Fxq "vm.overcommit_memory = 1" /etc/sysctl.conf
 then
     echo 'vm.overcommit_memory = 1' >> /etc/sysctl.conf
 fi
-sed -i "s|# unixsocket /var/run/redis/redis.sock|unixsocket $REDIS_SOCK|g" $REDIS_CONF
+#sed -i "s|# unixsocket /var/run/redis/redis.sock|unixsocket $REDIS_SOCK|g" $REDIS_CONF
+echo "unixsocket $REDIS_SOCK" >> $REDIS_CONF
 sed -i "s|# unixsocketperm 700|unixsocketperm 777|g" $REDIS_CONF
 sed -i "s|port 6379|port 0|g" $REDIS_CONF
 sed -i "s|# requirepass foobared|requirepass $REDIS_PASS|g" $REDIS_CONF
@@ -112,12 +95,8 @@ chown redis:root /etc/redis/redis.conf
 chmod 600 /etc/redis/redis.conf
 
 # Cleanup
-apt purge -y \
-    git \
-    build-essential*
-
-apt update -q4 & spinner_loading
-apt autoremove -y
-apt autoclean
+"$APT" update -q4 & spinner_loading
+"$APT" autoremove -y
+"$APT" autoclean
 
 exit

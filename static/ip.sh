@@ -5,7 +5,7 @@
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
-FIRST_IFACE=1 . <(curl -sL https://raw.githubusercontent.com/nextcloud/vm/master/lib.sh)
+FIRST_IFACE=1 . <(curl -sL https://raw.githubusercontent.com/techandme/NextBerry/master/lib.sh)
 unset FIRST_IFACE
 
 # Check for errors + debug code and abort if something isn't right
@@ -19,14 +19,11 @@ source /etc/network/interfaces.d/*
 
 # The loopback network interface
 auto lo $IFACE
+allow-hotplug $IFACE
 iface lo inet loopback
 
 # The primary network interface
 iface $IFACE inet static
-pre-up /sbin/ethtool -K $IFACE tso off
-pre-up /sbin/ethtool -K $IFACE gso off
-# Fixes https://github.com/nextcloud/vm/issues/92:
-pre-up ip link set dev $IFACE mtu 1430
 
 # Best practice is to change the static address
 # to something outside your DHCP range.

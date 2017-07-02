@@ -2,7 +2,7 @@
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
-NCDB=1 && MYCNFPW=1 && NC_UPDATE=1 . <(curl -sL https://raw.githubusercontent.com/nextcloud/vm/master/lib.sh)
+NCDB=1 && MYCNFPW=1 && NC_UPDATE=1 . <(curl -sL https://raw.githubusercontent.com/techandme/NextBerry/master/lib.sh)
 unset NC_UPDATE
 unset MYCNFPW
 unset NCDB
@@ -28,8 +28,8 @@ then
 fi
 
 # System Upgrade
-apt update -q4 & spinner_loading
-export DEBIAN_FRONTEND=noninteractive ; apt dist-upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
+apt-get update -q4 & spinner_loading
+export DEBIAN_FRONTEND=noninteractive ; apt-get dist-upgrade -y -o Dpkg::Options::="--force-confdef" -o Dpkg::Options::="--force-confold"
 
 # Update Redis PHP extention
 if type pecl > /dev/null 2>&1
@@ -37,7 +37,7 @@ then
     if [ "$(dpkg-query -W -f='${Status}' php7.0-dev 2>/dev/null | grep -c "ok installed")" == "0" ]
     then
         echo "Preparing to upgrade Redis Pecl extenstion..."
-        apt install php7.0-dev -y
+        apt-get install php7.0-dev -y
     fi
     echo "Trying to upgrade the Redis Pecl extenstion..."
     pecl upgrade redis
@@ -59,11 +59,8 @@ then
 fi
 
 # Cleanup un-used packages
-apt autoremove -y
-apt autoclean
-
-# Update GRUB, just in case
-update-grub
+apt-get autoremove -y
+apt-get autoclean
 
 # Remove update lists
 rm /var/lib/apt/lists/* -r
@@ -140,7 +137,7 @@ then
     echo "password='$regressionpw'"
     } >> "$MYCNF"
     echo "Please restart the upgrade process, we fixed the password file $MYCNF."
-    exit 1    
+    exit 1
 fi
 
 if [ -z "$MARIADBMYCNFPASS" ]
@@ -227,7 +224,7 @@ fi
 if [ -d $BACKUP/themes/ ]
 then
     echo "$BACKUP/themes/ exists"
-    echo 
+    echo
     printf "${Green}All files are backed up.${Color_Off}\n"
     sudo -u www-data php "$NCPATH"/occ maintenance:mode --on
     echo "Removing old Nextcloud instance in 5 seconds..." && sleep 5
@@ -276,6 +273,7 @@ bash "$SECURE"
 
 # Repair
 sudo -u www-data php "$NCPATH"/occ maintenance:repair
+sudo -u www-data php "$NCPATH"/occ status | grep "versionstring" | awk '{print $3}' > "$SCRIPTS/.versionnc"
 
 CURRENTVERSION_after=$(sudo -u www-data php "$NCPATH"/occ status | grep "versionstring" | awk '{print $3}')
 if [[ "$NCVERSION" == "$CURRENTVERSION_after" ]]

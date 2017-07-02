@@ -2,7 +2,7 @@
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
-. <(curl -sL https://raw.githubusercontent.com/nextcloud/vm/master/lib.sh)
+. <(curl -sL https://raw.githubusercontent.com/techandme/NextBerry/master/lib.sh)
 
 # Tech and Me © - 2017, https://www.techandme.se/
 
@@ -150,11 +150,10 @@ then
     letsencrypt --version
 else
     echo "Installing letsencrypt..."
-    add-apt-repository ppa:certbot/certbot -y
-    apt update -q4 & spinner_loading
-    apt install letsencrypt -y -q
-    apt update -q4 & spinner_loading
-    apt dist-upgrade -y
+    "$APT" install git -y
+    cd /etc
+    git clone https://github.com/certbot/certbot.git
+    cd certbot
 fi
 
 #Fix issue #28
@@ -233,7 +232,7 @@ standalone() {
 a2dissite 000-default.conf
 sudo service apache2 stop
 # Generate certs
-eval "letsencrypt certonly --standalone $default_le"
+eval "./letsencrypt-auto certonly --standalone $default_le"
 if [ "$?" -eq 0 ]; then
     echo "success" > /tmp/le_test
 else
@@ -241,11 +240,9 @@ else
 fi
 # Activate Apache again (Disabled during standalone)
 service apache2 start
-a2ensite 000-default.conf
-service apache2 reload
 }
 webroot() {
-eval "letsencrypt certonly --webroot --webroot-path $NCPATH $default_le"
+eval "./letsencrypt-auto certonly --webroot --webroot-path $NCPATH $default_le"
 if [ "$?" -eq 0 ]; then
     echo "success" > /tmp/le_test
 else
@@ -253,7 +250,7 @@ else
 fi
 }
 certonly() {
-eval "letsencrypt certonly $default_le"
+eval "./letsencrypt-auto certonly $default_le"
 if [ "$?" -eq 0 ]; then
     echo "success" > /tmp/le_test
 else
@@ -272,7 +269,7 @@ if [ -d "$CERTFILES" ]
     # Generate DHparams chifer
     if [ ! -f "$DHPARAMS" ]
     then
-        openssl dhparam -dsaparam -out "$DHPARAMS" 8192
+        openssl dhparam -dsaparam -out "$DHPARAMS" 4096
     fi
     # Activate new config
     check_command bash "$SCRIPTS/test-new-config.sh" "$domain.conf"
@@ -326,7 +323,5 @@ cat << ENDMSG
 ENDMSG
 any_key "Press any key to revert settings and exit... "
 
-# Cleanup
-apt remove letsencrypt -y
-apt autoremove -y
+cd
 clear

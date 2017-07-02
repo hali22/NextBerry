@@ -5,7 +5,7 @@
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
-. <(curl -sL https://raw.githubusercontent.com/nextcloud/vm/master/lib.sh)
+. <(curl -sL https://raw.githubusercontent.com/techandme/NextBerry/master/lib.sh)
 
 # Check for errors + debug code and abort if something isn't right
 # 1 = ON
@@ -29,7 +29,8 @@ fi
 
 if [ -x /var/scripts/nextcloud-startup-script.sh ]
 then
-    /var/scripts/nextcloud-startup-script.sh
+    echo "nextcloud-startup-script.sh:" >> /var/scripts/logs
+    /var/scripts/nextcloud-startup-script.sh 2>&1 | tee -a /var/scripts/logs
 fi
 
 if [ -x /var/scripts/history.sh ]

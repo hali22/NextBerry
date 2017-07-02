@@ -5,7 +5,7 @@
 # shellcheck disable=2034,2059
 true
 # shellcheck source=lib.sh
-MYCNFPW=1 . <(curl -sL https://raw.githubusercontent.com/nextcloud/vm/master/lib.sh)
+MYCNFPW=1 . <(curl -sL https://raw.githubusercontent.com/techandme/NextBerry/master/lib.sh)
 unset MYCNFPW
 
 # Check for errors + debug code and abort if something isn't right
@@ -36,7 +36,7 @@ then
     echo "Ubuntu Server is required to run this script."
     echo "Please install that distro and try again."
     sleep 3
-    exit 1
+    #exit 1
 fi
 
 
@@ -44,7 +44,7 @@ if ! version 16.04 "$DISTRO" 16.04.4; then
     echo "Ubuntu version seems to be $DISTRO"
     echo "It must be between 16.04 - 16.04.4"
     echo "Please install that version and try again."
-    exit 1
+    #exit 1
 fi
 
 echo
@@ -58,8 +58,8 @@ echo "phpmyadmin phpmyadmin/app-password-confirm password $MARIADBMYCNFPASS" | d
 echo "phpmyadmin phpmyadmin/mysql/admin-pass password $MARIADBMYCNFPASS" | debconf-set-selections
 echo "phpmyadmin phpmyadmin/mysql/app-pass password $MARIADBMYCNFPASS" | debconf-set-selections
 echo "phpmyadmin phpmyadmin/reconfigure-webserver multiselect apache2" | debconf-set-selections
-apt update -q4 & spinner_loading
-apt install -y -q \
+apt-get update -q4 & spinner_loading
+apt-get install -y -q \
     php-gettext \
     phpmyadmin
 

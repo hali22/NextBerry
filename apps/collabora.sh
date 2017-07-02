@@ -21,7 +21,6 @@ then
 fi
 
 # Test RAM size (2GB min) + CPUs (min 2)
-ram_check 2 Collabora
 cpu_check 2 Collabora
 
 # Check if Onlyoffice is running
@@ -36,7 +35,7 @@ fi
 whiptail --msgbox "Please before you start, make sure that port 443 is directly forwarded to this machine!" "$WT_HEIGHT" "$WT_WIDTH"
 
 # Get the latest packages
-apt update -q4 & spinner_loading
+"$APT" update -q4 & spinner_loading
 
 # Check if Nextcloud is installed
 echo "Checking if Nextcloud is installed..."
@@ -209,7 +208,7 @@ then
     cat << HTTPS_CREATE > "$HTTPS_CONF"
 <VirtualHost *:443>
   ServerName $SUBDOMAIN:443
-  
+
   <Directory /var/www>
   Options -Indexes
   </Directory>
