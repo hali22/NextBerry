@@ -269,18 +269,14 @@ HTTPS_CREATE
 fi
 
 # Let's Encrypt
-letsencrypt --version 2> /dev/null
-LE_IS_AVAILABLE=$?
-if [ $LE_IS_AVAILABLE -eq 0 ]
-then
-    letsencrypt --version
+if [ -d /etc/certbot ] ;then
+    cd /etc/certbot
 else
-    echo "Installing letsencrypt..."
-    add-apt-repository ppa:certbot/certbot -y
-    apt update -q4 & spinner_loading
-    apt install letsencrypt -y -q
-    apt update -q4 & spinner_loading
-    apt dist-upgrade -y
+  echo "Installing letsencrypt..."
+  "$APT" install git -y
+  cd /etc
+  git clone https://github.com/certbot/certbot.git
+  cd certbot
 fi
 
 # Stop Apache to aviod port conflicts
@@ -288,7 +284,7 @@ a2dissite 000-default.conf
 sudo service apache2 stop
 
 # Generate certs
-if letsencrypt certonly --standalone --agree-tos --rsa-key-size 4096 -d "$SUBDOMAIN"
+if ./letsencrypt-auto certonly --standalone --agree-tos --rsa-key-size 4096 -d "$SUBDOMAIN"
 then
     # Generate DHparams chifer
     if [ ! -f "$DHPARAMS" ]
@@ -332,4 +328,5 @@ then
     echo "Collabora is now succesfylly installed."
     echo "You may have to reboot before Docker will load correctly."
     any_key "Press any key to continue... "
+    cd
 fi
