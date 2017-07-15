@@ -48,7 +48,8 @@ add_crontab_le() {
 DATE='$(date +%Y-%m-%d_%H:%M)'
 cat << CRONTAB > "$SCRIPTS/letsencryptrenew.sh"
 #!/bin/sh
-if ! certbot renew --pre-hook "service apache2 stop" --post-hook "service apache2 start" --quiet --no-self-upgrade > /var/log/letsencrypt/renew.log 2>&1 ; then
+cd /etc/certbot
+if ! ./letsencrypt-auto renew --pre-hook "service apache2 stop" --post-hook "service apache2 start" --quiet --no-self-upgrade > /var/log/letsencrypt/renew.log 2>&1 ; then
         echo "Let's Encrypt FAILED!"--$DATE >> /var/log/letsencrypt/cronjob.log
 else
         echo "Let's Encrypt SUCCESS!"--$DATE >> /var/log/letsencrypt/cronjob.log
